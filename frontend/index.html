@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        /* Navigation bar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            background-color: white;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .nav-buttons a {
+            text-decoration: none;
+            margin-left: 20px;
+            color: #222;
+        }
+
+        /* Main landing section */
+        .hero {
+            text-align: center;
+            padding: 120px 20px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            max-width: 600px;
+            margin: 0 auto 35px;
+            line-height: 1.6;
+        }
+
+        .buttons a {
+            display: inline-block;
+            padding: 14px 28px;
+            margin: 0 8px;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+
+        .create-button {
+            background-color: #222;
+            color: white;
+        }
+
+        .login-button {
+            border: 1px solid #222;
+            color: #222;
+        }
+
+        /* About section */
+        .about {
+            text-align: center;
+            background-color: white;
+            padding: 60px 20px;
+        }
+
+        .about h2 {
+            margin-bottom: 15px;
+        }
+
+        .about p {
+            max-width: 650px;
+            margin: auto;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">SkillSwap</div>
+
+        <div class="nav-buttons">
+            <a href="#">About</a>
+            <a href="#">Log In</a>
+            <a href="create-account.html">Create Account</a>
+        </div>
+    </nav>
+
+    <!-- Main Landing Page -->
+    <section class="hero">
+        <h1>Exchange Skills. Learn Together.</h1>
+
+        <p>
+            Connect with other WSU students to teach skills you know
+            and learn skills you want.
+        </p>
+
+        <div class="buttons">
+            <a href="create-account.html" class="create-button">Create Account</a>
+            <a href="#" class="login-button">Log In</a>
+        </div>
+    </section>
+
+    <!-- About -->
+    <section class="about">
+        <h2>About SkillSwap</h2>
+
+        <p>
+            SkillSwap helps students connect with each other,
+            exchange skills, and learn something new from their peers.
+        </p>
+    </section>
+
+</body>
+</html>

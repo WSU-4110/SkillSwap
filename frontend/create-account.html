@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - SkillSwap</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #222;
+        }
+
+        nav {
+            padding: 20px 60px;
+            background-color: white;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #222;
+        }
+
+        .signup-container {
+            width: 400px;
+            margin: 70px auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background-color: #222;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-text {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-text a {
+            color: #222;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">SkillSwap</a>
+    </nav>
+
+    <div class="signup-container">
+
+        <h1>Create Account</h1>
+        <p class="subtitle">Join SkillSwap and start exchanging skills.</p>
+
+        <form>
+            <label for="name">Full Name</label>
+            <input type="text" id="name" placeholder="Enter your full name">
+
+            <label for="email">WSU Email</label>
+            <input type="email" id="email" placeholder="Enter your WSU email">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Create a password">
+
+            <label for="confirm-password">Confirm Password</label>
+            <input type="password" id="confirm-password" placeholder="Confirm your password">
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <p class="login-text">
+            Already have an account?
+            <a href="login.html">Log In</a>
+        </p>
+
+    </div>
+
+</body>
+</html>
