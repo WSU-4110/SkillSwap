@@ -1,10 +1,23 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const session = require('express-session');
 
 const app = express();
 
 app.use(express.json());
+app.use(session({
+  name: 'skillswap.sid',
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 1000
+  }
+}));
 
 app.get('/', (req, res) => {
   res.json({ message: 'SkillSwap backend is running!' });
@@ -77,7 +90,76 @@ app.post('/api/register', async (req, res) => {
     });
   }
 });
+// Log in an existing user.
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body || {};
 
+  if (
+    typeof email !== 'string' ||
+    typeof password !== 'string' ||
+    email.trim().length === 0 ||
+    email.trim().length > 254 ||
+    password.length === 0 ||
+    Buffer.byteLength(password, 'utf8') > 72
+  ) {
+    return res.status(400).json({
+      message: 'Enter a valid email and password.'
+    });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+
+  try {
+    const [users] = await db.execute(
+      'SELECT id, name, email, password_hash FROM users WHERE email = ?',
+      [cleanEmail]
+    );
+
+    const user = users[0];
+
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(401).json({
+        message: 'Incorrect email or password.'
+      });
+    }
+
+    // Create a new session ID after successful authentication.
+    req.session.regenerate(error => {
+      if (error) {
+        return res.status(500).json({
+          message: 'Could not log in. Please try again.'
+        });
+      }
+
+      req.session.userId = user.id;
+
+      req.session.save(error => {
+        if (error) {
+          return req.session.destroy(() => {
+            res.status(500).json({
+              message: 'Could not log in. Please try again.'
+            });
+          });
+        }
+
+        return res.status(200).json({
+          message: 'Logged in successfully!',
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email
+          }
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Login failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not log in. Please try again.'
+    });
+  }
+});
 const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
