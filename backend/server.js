@@ -10,6 +10,11 @@ const { randomUUID } = require('crypto');
 
 const app = express();
 
+// Prevent browsers and shared caches from storing API responses.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 app.use(express.json());
 app.use(session({
   name: 'skillswap.sid',
@@ -119,6 +124,43 @@ app.post('/api/register', async (req, res) => {
   }
 });
 // Log in an existing user.
+// Return only permitted public profile fields.
+app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
+  const { userId } = req.params;
+
+  if (!/^[1-9]\d*$/.test(userId) ||
+      !Number.isSafeInteger(Number(userId))) {
+    return res.status(400).json({
+      message: 'Invalid user ID.'
+    });
+  }
+
+  try {
+    const [users] = await db.execute(
+      'SELECT name, bio FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (!users[0]) {
+      return res.status(404).json({
+        message: 'User not found.'
+      });
+    }
+
+    return res.json({
+      profile: {
+        name: users[0].name,
+        bio: users[0].bio
+      }
+    });
+  } catch (error) {
+    console.error('Public profile lookup failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not load the profile.'
+    });
+  }
+});
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body || {};
 
