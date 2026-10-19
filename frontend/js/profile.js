@@ -135,18 +135,41 @@ document.getElementById("add-teach").addEventListener("click", function() {
 
 });
 
-    // Add a learning skill
-    document.getElementById("add-learn").addEventListener("click", function() {
-        const input = document.getElementById("learn-input");
-        const skill = input.value.trim();
+ // Add a learning skill
+document.getElementById("add-learn").addEventListener("click", function() {
 
-        if (skill !== "") {
-            learnSkills.push(skill);
-            input.value = "";
-            updateSkills("learn-list", learnSkills);
-        }
+    const input = document.getElementById("learn-input");
+    const skill = input.value.trim();
+
+    // Check if skill is empty
+    if (skill === "") {
+        message.textContent = "Please enter a skill you want to learn.";
+        message.style.color = "red";
+        return;
+    }
+
+    // Check if skill already exists
+    const skillExists = learnSkills.some(function(existingSkill) {
+        return existingSkill.toLowerCase() === skill.toLowerCase();
     });
 
+    if (skillExists) {
+        message.textContent = "This skill is already in your learning list.";
+        message.style.color = "red";
+        return;
+    }
+
+    // Add skill
+    learnSkills.push(skill);
+
+    input.value = "";
+
+    updateSkills("learn-list", learnSkills);
+
+    message.textContent = "Learning skill added successfully!";
+    message.style.color = "green";
+
+});
     // Save changes
     editForm.addEventListener("submit", function(event) {
         event.preventDefault();
