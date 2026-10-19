@@ -375,6 +375,27 @@ app.put(
     });
   }
 );
+// End the current login session.
+app.post('/api/logout', requireLogin, (req, res) => {
+  req.session.destroy(error => {
+    if (error) {
+      return res.status(500).json({
+        message: 'Could not log out. Please try again.'
+      });
+    }
+
+    res.clearCookie('skillswap.sid', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    return res.json({
+      message: 'Logged out successfully!'
+    });
+  });
+});
 const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
