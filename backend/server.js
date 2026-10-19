@@ -2,8 +2,14 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 const session = require('express-session');
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 app.use(express.json());
 app.use(session({
