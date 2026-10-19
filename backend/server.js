@@ -1,9 +1,11 @@
 const express = require('express');
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 
 const app = express();
 
+app.use(cors());  // ← NEW
 app.use(express.json());
 
 app.get('/', (req, res) => {

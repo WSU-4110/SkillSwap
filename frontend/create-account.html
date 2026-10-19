@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account - SkillSwap</title>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account - SkillSwap</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -16,9 +11,9 @@
 
     <nav>
         <a href="index.html" class="logo">
-    <img src="images/logo.png" alt="SkillSwap logo">
-    <span>SkillSwap</span>
-</a>
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
     </nav>
 
     <div class="signup-container">
@@ -26,20 +21,43 @@
         <h1>Create Account</h1>
         <p class="subtitle">Join SkillSwap and start exchanging skills.</p>
 
-        <form>
+        <form id="create-account-form">
+
             <label for="name">Full Name</label>
-            <input type="text" id="name" placeholder="Enter your full name">
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter your full name"
+                required
+            >
 
             <label for="email">WSU Email</label>
-            <input type="email" id="email" placeholder="Enter your WSU email">
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your WSU email"
+                required
+            >
 
             <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Create a password">
+            <input
+                type="password"
+                id="password"
+                placeholder="Create a password"
+                required
+            >
 
             <label for="confirm-password">Confirm Password</label>
-            <input type="password" id="confirm-password" placeholder="Confirm your password">
+            <input
+                type="password"
+                id="confirm-password"
+                placeholder="Confirm your password"
+                required
+            >
 
             <button type="submit">Create Account</button>
+
+            <p id="message"></p>
         </form>
 
         <p class="login-text">
@@ -48,6 +66,55 @@
         </p>
 
     </div>
+
+    <script>
+        const form = document.getElementById('create-account-form');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword =
+                document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                message.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    'http://localhost:3000/api/register',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            password: password
+                        })
+                    }
+                );
+
+                const data = await response.json();
+
+                message.textContent = data.message;
+
+                if (response.ok) {
+                    form.reset();
+                }
+
+            } catch (error) {
+                message.textContent =
+                    'Could not connect to the server.';
+            }
+        });
+    </script>
 
 </body>
 </html>
