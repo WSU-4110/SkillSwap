@@ -61,9 +61,22 @@ function loadUserProfile() {
     displayUserSkills("user-teach-skills", user.teachSkills);
     displayUserSkills("user-learn-skills", user.learnSkills);
 
+
+    // Temporary accepted request for frontend testing only.
+    const acceptedUserIds = ["1"];
+
+    const messageButton = document.getElementById("message-user-button");
+
+    if (acceptedUserIds.includes(user.id)) {
+        messageButton.href = "messages.html?id=" + encodeURIComponent(user.id);
+        messageButton.hidden = false;
+    } else {
+        messageButton.hidden = true;
+    }
+
     document.title = user.name + " - SkillSwap";
     status.textContent = "";
     content.hidden = false;
-}
+    }
 
 loadUserProfile();
