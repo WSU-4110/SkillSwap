@@ -244,3 +244,233 @@ nav {
     color: #0c5449;
     font-weight: bold;
 }
+/* MY PROFILE PAGE */
+
+.profile-page {
+    max-width: 1000px;
+    margin: 60px auto;
+    padding: 20px;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.profile-info h1 {
+    color: #0c5449;
+    margin-bottom: 10px;
+}
+
+.profile-info p {
+    margin-bottom: 8px;
+}
+
+.edit-button {
+    background-color: #ffcc33;
+    color: #1e3b35;
+    padding: 13px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.profile-bio {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.profile-bio h2 {
+    color: #0c5449;
+    margin-bottom: 15px;
+}
+
+.profile-skills {
+    display: flex;
+    gap: 25px;
+}
+
+.skills-box {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.skills-box h2 {
+    color: #0c5449;
+    margin-bottom: 20px;
+}
+
+.skills-box ul {
+    padding-left: 20px;
+}
+
+.skills-box li {
+    margin-bottom: 12px;
+}
+
+@media (max-width: 700px) {
+    .profile-header,
+    .profile-skills {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profile-page {
+        margin: 30px auto;
+    }
+
+    nav {
+        padding: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+}
+/* EDIT PROFILE PAGE */
+
+.edit-profile-container {
+    max-width: 1000px;
+    margin: 60px auto;
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.edit-profile-container h1 {
+    color: #0c5449;
+    margin-bottom: 30px;
+}
+
+.edit-profile-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.edit-profile-container input[type="text"],
+.edit-profile-container textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+}
+
+.profile-fields {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.profile-fields div {
+    flex: 1;
+}
+
+.edit-profile-container textarea {
+    height: 120px;
+    margin-bottom: 25px;
+    resize: vertical;
+}
+
+.edit-profile-container input[type="file"] {
+    margin-bottom: 30px;
+}
+
+.edit-skills {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.edit-skills-box {
+    flex: 1;
+}
+
+.edit-skills-box h2 {
+    color: #0c5449;
+    margin-bottom: 15px;
+}
+
+.add-skill {
+    display: flex;
+    gap: 10px;
+}
+
+.add-skill input {
+    flex: 1;
+    min-width: 0;
+}
+
+.add-skill button {
+    padding: 12px 20px;
+    background-color: #ffcc33;
+    color: #1e3b35;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.edit-skills-box ul {
+    margin-top: 15px;
+    padding-left: 20px;
+}
+
+.edit-skills-box li {
+    margin-bottom: 10px;
+}
+
+.profile-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.cancel-button,
+.save-button {
+    padding: 13px 25px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #ffffff;
+    color: #0c5449;
+    border: 2px solid #0c5449;
+}
+
+.save-button {
+    background-color: #ffcc33;
+    color: #1e3b35;
+    border: none;
+}
+
+#profile-message {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+@media (max-width: 700px) {
+    .edit-profile-container {
+        margin: 30px 15px;
+        padding: 25px;
+    }
+
+    .profile-fields,
+    .edit-skills {
+        flex-direction: column;
+    }
+}

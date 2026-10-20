@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - SkillSwap</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
+
+        <div class="nav-buttons">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse</a>
+            <a href="profile.html">My Profile</a>
+        </div>
+    </nav>
+
+    <div class="edit-profile-container">
+
+        <h1>Edit Profile</h1>
+
+        <form id="edit-profile-form">
+
+            <div class="profile-fields">
+
+                <div>
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="Enter your full name">
+                </div>
+
+                <div>
+                    <label for="major">Major</label>
+                    <input type="text" id="major" placeholder="Enter your major">
+                </div>
+
+            </div>
+
+            <label for="bio">Bio</label>
+            <textarea id="bio" placeholder="Tell us about yourself"></textarea>
+
+            <label for="photo">Change Photo</label>
+            <input type="file" id="photo" accept="image/*">
+
+            <div class="edit-skills">
+
+                <div class="edit-skills-box">
+
+                    <h2>Skills I Can Teach</h2>
+
+                    <div class="add-skill">
+                        <input type="text" id="teach-input" placeholder="Add a skill...">
+                        <button type="button" id="add-teach">Add</button>
+                    </div>
+
+                    <ul id="teach-list"></ul>
+
+                </div>
+
+                <div class="edit-skills-box">
+
+                    <h2>Skills I Want to Learn</h2>
+
+                    <div class="add-skill">
+                        <input type="text" id="learn-input" placeholder="Add a skill...">
+                        <button type="button" id="add-learn">Add</button>
+                    </div>
+
+                    <ul id="learn-list"></ul>
+
+                </div>
+
+            </div>
+
+            <p id="profile-message" role="status" aria-live="polite"></p>
+
+            <div class="profile-buttons">
+                <a href="profile.html" class="cancel-button">Cancel</a>
+                <button type="submit" class="save-button">Save Changes</button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <script src="js/profile.js"></script>
+
+</body>
+</html>
