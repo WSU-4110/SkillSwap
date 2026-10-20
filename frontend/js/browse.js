@@ -141,3 +141,5 @@ function loadBrowsePage() {
 }
 
 loadBrowsePage();
+
+card.style.marginBottom = "20px";
