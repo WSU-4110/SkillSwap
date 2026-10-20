@@ -107,6 +107,10 @@
 
                 if (response.ok) {
                     form.reset();
+
+                    // Send the new user to login after
+                    // successfully creating an account.
+                    window.location.href = 'login.html';
                 }
 
             } catch (error) {

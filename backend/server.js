@@ -11,11 +11,13 @@ const { randomUUID } = require('crypto');
 
 const app = express();
 
+
 // Allow frontend requests to include the login session.
 app.use(cors({
   origin: true,
   credentials: true
 }));
+
 
 // Prevent browsers and shared caches from storing API responses.
 app.use('/api', (req, res, next) => {
@@ -37,6 +39,7 @@ app.use(session({
     maxAge: 60 * 60 * 1000
   }
 }));
+
 
 // =========================
 // PROFILE IMAGE SETUP
@@ -66,12 +69,14 @@ function receiveProfileImage(req, res, next) {
   });
 }
 
+
 // Test route
 app.get('/', (req, res) => {
   res.json({
     message: 'SkillSwap backend is running!'
   });
 });
+
 
 // =========================
 // FR1 - CREATE ACCOUNT
@@ -144,6 +149,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+
 // =========================
 // AUTHENTICATION
 // =========================
@@ -157,6 +163,7 @@ function requireLogin(req, res, next) {
 
   next();
 }
+
 
 // =========================
 // FR2 - LOGIN
@@ -234,6 +241,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
 // Logout
 app.post('/api/logout', requireLogin, (req, res) => {
   req.session.destroy(error => {
@@ -255,6 +263,7 @@ app.post('/api/logout', requireLogin, (req, res) => {
     });
   });
 });
+
 
 // =========================
 // FR3 - PROFILE
@@ -285,6 +294,7 @@ app.get('/api/profile', requireLogin, async (req, res) => {
     });
   }
 });
+
 
 // Read another user's public profile.
 app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
@@ -326,6 +336,7 @@ app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
   }
 });
 
+
 // Serve profile image.
 app.get('/api/profile/image', requireLogin, async (req, res) => {
   try {
@@ -365,6 +376,7 @@ app.get('/api/profile/image', requireLogin, async (req, res) => {
     });
   }
 });
+
 
 // Update profile.
 app.put(
@@ -501,6 +513,7 @@ app.put(
   }
 );
 
+
 // =========================
 // FR4 - SKILLS TO TEACH
 // =========================
@@ -524,6 +537,7 @@ app.get('/api/skills/teach', requireLogin, async (req, res) => {
     });
   }
 });
+
 
 // Add teaching skill.
 app.post('/api/skills/teach', requireLogin, async (req, res) => {
@@ -573,6 +587,16 @@ app.post('/api/skills/teach', requireLogin, async (req, res) => {
     });
   }
 });
+
+
+// =========================
+// FR5 - SKILLS TO LEARN
+// =========================
+
+const learningSkillsRouter = require('./routes/learning-skills');
+
+app.use('/api/skills/learn', learningSkillsRouter);
+
 
 // =========================
 // START SERVER
