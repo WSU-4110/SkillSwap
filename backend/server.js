@@ -3,6 +3,11 @@ const bcrypt = require('bcryptjs');
 const db = require('./db');
 const session = require('express-session');
 const cors = require('cors');
+const multer = require('multer');
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs/promises');
+const { randomUUID } = require('crypto');
 
 const app = express();
 
@@ -12,6 +17,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
 app.use(session({
   name: 'skillswap.sid',
   secret: process.env.SESSION_SECRET,
@@ -25,15 +31,43 @@ app.use(session({
   }
 }));
 
+// Profile image upload setup
+const profileImageDir = path.join(__dirname, 'uploads', 'profiles');
+
+const uploadProfileImage = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1,
+    fields: 3,
+    fieldSize: 16 * 1024
+  }
+}).single('image');
+
+function receiveProfileImage(req, res, next) {
+  uploadProfileImage(req, res, error => {
+    if (error) {
+      return res.status(400).json({
+        message: 'Upload one image of at most 5 MB with your profile details.'
+      });
+    }
+
+    next();
+  });
+}
+
+// Test route
 app.get('/', (req, res) => {
   res.json({ message: 'SkillSwap backend is running!' });
 });
 
-// Receive a request to create an account.
+// =========================
+// FR1 - CREATE ACCOUNT
+// =========================
+
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body || {};
 
-  // Check that all three values are text.
   if (
     typeof name !== 'string' ||
     typeof email !== 'string' ||
@@ -47,7 +81,6 @@ app.post('/api/register', async (req, res) => {
   const cleanName = name.trim();
   const cleanEmail = email.trim().toLowerCase();
 
-  // Check the name and email.
   if (
     cleanName.length === 0 ||
     cleanName.length > 100 ||
@@ -59,8 +92,10 @@ app.post('/api/register', async (req, res) => {
     });
   }
 
-  // bcrypt supports passwords up to 72 bytes.
-  if (password.length < 8 || Buffer.byteLength(password, 'utf8') > 72) {
+  if (
+    password.length < 8 ||
+    Buffer.byteLength(password, 'utf8') > 72
+  ) {
     return res.status(400).json({
       message: 'Password must be at least 8 characters and at most 72 bytes.'
     });
@@ -96,7 +131,11 @@ app.post('/api/register', async (req, res) => {
     });
   }
 });
-// Log in an existing user.
+
+// =========================
+// FR2 - LOGIN
+// =========================
+
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body || {};
 
@@ -123,13 +162,15 @@ app.post('/api/login', async (req, res) => {
 
     const user = users[0];
 
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    if (
+      !user ||
+      !(await bcrypt.compare(password, user.password_hash))
+    ) {
       return res.status(401).json({
         message: 'Incorrect email or password.'
       });
     }
 
-    // Create a new session ID after successful authentication.
     req.session.regenerate(error => {
       if (error) {
         return res.status(500).json({
@@ -166,6 +207,228 @@ app.post('/api/login', async (req, res) => {
     });
   }
 });
+
+// =========================
+// FR3 - PROFILE
+// =========================
+
+// Only signed-in users can access their own profile.
+function requireLogin(req, res, next) {
+  if (!req.session.userId) {
+    return res.status(401).json({
+      message: 'Please log in first.'
+    });
+  }
+
+  next();
+}
+
+// Read the signed-in user's profile.
+app.get('/api/profile', requireLogin, async (req, res) => {
+  try {
+    const [users] = await db.execute(
+      'SELECT id, name, major, bio, profile_image FROM users WHERE id = ?',
+      [req.session.userId]
+    );
+
+    if (!users[0]) {
+      return res.status(404).json({
+        message: 'User not found.'
+      });
+    }
+
+    return res.json({
+      profile: users[0]
+    });
+  } catch (error) {
+    console.error('Profile lookup failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not load your profile.'
+    });
+  }
+});
+
+// Serve the signed-in user's saved profile image.
+app.get('/api/profile/image', requireLogin, async (req, res) => {
+  try {
+    const [users] = await db.execute(
+      'SELECT profile_image FROM users WHERE id = ?',
+      [req.session.userId]
+    );
+
+    const filename = users[0]?.profile_image;
+
+    if (
+      !filename ||
+      !/^[a-f0-9-]{36}\.webp$/.test(filename)
+    ) {
+      return res.status(404).json({
+        message: 'No profile image.'
+      });
+    }
+
+    res.set('Cache-Control', 'private, no-store');
+
+    return res.sendFile(
+      path.join(profileImageDir, filename),
+      error => {
+        if (error && !res.headersSent) {
+          res.status(
+            error.statusCode === 404 ? 404 : 500
+          ).json({
+            message: 'Could not load the profile image.'
+          });
+        }
+      }
+    );
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Could not load the profile image.'
+    });
+  }
+});
+
+// Save profile details and optional profile image.
+app.put(
+  '/api/profile',
+  requireLogin,
+  receiveProfileImage,
+  async (req, res) => {
+    const { name, major = '', bio = '' } = req.body || {};
+
+    if (
+      typeof name !== 'string' ||
+      name.trim().length === 0 ||
+      name.trim().length > 100
+    ) {
+      return res.status(400).json({
+        message: 'Full name must contain 1–100 characters.'
+      });
+    }
+
+    if (
+      typeof major !== 'string' ||
+      major.length > 100
+    ) {
+      return res.status(400).json({
+        message: 'Major must be text with at most 100 characters.'
+      });
+    }
+
+    if (
+      typeof bio !== 'string' ||
+      bio.length > 500
+    ) {
+      return res.status(400).json({
+        message: 'Bio must be text with at most 500 characters.'
+      });
+    }
+
+    let imageBuffer;
+    let newFilename;
+
+    if (req.file) {
+      try {
+        const image = sharp(req.file.buffer, {
+          limitInputPixels: 25000000
+        });
+
+        const metadata = await image.metadata();
+
+        if (!['jpeg', 'png', 'webp'].includes(metadata.format)) {
+          return res.status(400).json({
+            message: 'Choose a JPEG, PNG, or WebP image.'
+          });
+        }
+
+        imageBuffer = await image
+          .rotate()
+          .resize(512, 512, { fit: 'cover' })
+          .webp({ quality: 80 })
+          .toBuffer();
+      } catch (error) {
+        return res.status(400).json({
+          message: 'The image is invalid or too large to process.'
+        });
+      }
+    }
+
+    try {
+      const [users] = await db.execute(
+        'SELECT id, profile_image FROM users WHERE id = ?',
+        [req.session.userId]
+      );
+
+      if (!users[0]) {
+        return res.status(404).json({
+          message: 'User not found.'
+        });
+      }
+
+      if (imageBuffer) {
+        await fs.mkdir(profileImageDir, {
+          recursive: true
+        });
+
+        newFilename = `${randomUUID()}.webp`;
+
+        await fs.writeFile(
+          path.join(profileImageDir, newFilename),
+          imageBuffer,
+          { flag: 'wx' }
+        );
+      }
+
+      if (newFilename) {
+        await db.execute(
+          `UPDATE users
+           SET name = ?, major = ?, bio = ?, profile_image = ?
+           WHERE id = ?`,
+          [
+            name.trim(),
+            major.trim(),
+            bio,
+            newFilename,
+            req.session.userId
+          ]
+        );
+      } else {
+        await db.execute(
+          'UPDATE users SET name = ?, major = ?, bio = ? WHERE id = ?',
+          [
+            name.trim(),
+            major.trim(),
+            bio,
+            req.session.userId
+          ]
+        );
+      }
+    } catch (error) {
+      // Remove the new image if the database save fails.
+      if (newFilename) {
+        await fs.unlink(
+          path.join(profileImageDir, newFilename)
+        ).catch(() => {});
+      }
+
+      console.error('Profile update failed:', error.code);
+
+      return res.status(500).json({
+        message: 'Could not save your profile. Please try again.'
+      });
+    }
+
+    return res.json({
+      message: 'Profile saved successfully!'
+    });
+  }
+);
+
+// =========================
+// START SERVER
+// =========================
+
 const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {

@@ -94,6 +94,11 @@
 
                 message.textContent = data.message;
 
+                // If login is successful, go to the user's profile.
+                if (response.ok) {
+                    window.location.href = 'profile.html';
+                }
+
             } catch (error) {
                 message.textContent =
                     'Could not connect to the server.';
