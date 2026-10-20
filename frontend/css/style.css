@@ -243,6 +243,7 @@ nav {
 .signup-text a {
     color: #0c5449;
     font-weight: bold;
+<<<<<<< HEAD
 }
 /* MY PROFILE PAGE */
 
@@ -568,4 +569,6 @@ nav {
 .back-browse-button:focus-visible {
     outline: 3px solid #0c5449;
     outline-offset: 4px;
+=======
+>>>>>>> origin/landing-page
 }
