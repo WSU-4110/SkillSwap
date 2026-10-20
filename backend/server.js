@@ -438,6 +438,67 @@ app.post('/api/logout', requireLogin, (req, res) => {
     });
   });
 });
+// Read the signed-in user's teaching skills.
+app.get('/api/skills/teach', requireLogin, async (req, res) => {
+  try {
+    const [skills] = await db.execute(
+      'SELECT id, name FROM teaching_skills WHERE user_id = ? ORDER BY id',
+      [req.session.userId]
+    );
+
+    return res.json({ skills });
+  } catch (error) {
+    console.error('Teaching skills lookup failed:', error.code);
+    return res.status(500).json({
+      message: 'Could not load your teaching skills. Please try again.'
+    });
+  }
+});
+
+// Add a teaching skill to the signed-in user's profile.
+app.post('/api/skills/teach', requireLogin, async (req, res) => {
+  const { name } = req.body || {};
+
+  if (typeof name !== 'string') {
+    return res.status(400).json({
+      message: 'Enter a skill name.'
+    });
+  }
+
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+
+  if (cleanName.length === 0 || cleanName.length > 100) {
+    return res.status(400).json({
+      message: 'Skill name must contain 1–100 characters.'
+    });
+  }
+
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO teaching_skills (user_id, name) VALUES (?, ?)',
+      [req.session.userId, cleanName]
+    );
+
+    return res.status(201).json({
+      message: 'Teaching skill added successfully!',
+      skill: {
+        id: result.insertId,
+        name: cleanName
+      }
+    });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        message: 'This skill is already in your teaching list.'
+      });
+    }
+
+    console.error('Teaching skill save failed:', error.code);
+    return res.status(500).json({
+      message: 'Could not save the skill. Please try again.'
+    });
+  }
+});
 const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
