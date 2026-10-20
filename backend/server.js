@@ -11,10 +11,17 @@ const { randomUUID } = require('crypto');
 
 const app = express();
 
+// Allow frontend requests to include the login session.
 app.use(cors({
   origin: true,
   credentials: true
 }));
+
+// Prevent browsers and shared caches from storing API responses.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
 app.use(express.json());
 
@@ -31,7 +38,10 @@ app.use(session({
   }
 }));
 
-// Profile image upload setup
+// =========================
+// PROFILE IMAGE SETUP
+// =========================
+
 const profileImageDir = path.join(__dirname, 'uploads', 'profiles');
 
 const uploadProfileImage = multer({
@@ -58,7 +68,9 @@ function receiveProfileImage(req, res, next) {
 
 // Test route
 app.get('/', (req, res) => {
-  res.json({ message: 'SkillSwap backend is running!' });
+  res.json({
+    message: 'SkillSwap backend is running!'
+  });
 });
 
 // =========================
@@ -131,6 +143,20 @@ app.post('/api/register', async (req, res) => {
     });
   }
 });
+
+// =========================
+// AUTHENTICATION
+// =========================
+
+function requireLogin(req, res, next) {
+  if (!req.session.userId) {
+    return res.status(401).json({
+      message: 'Please log in first.'
+    });
+  }
+
+  next();
+}
 
 // =========================
 // FR2 - LOGIN
@@ -208,22 +234,33 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Logout
+app.post('/api/logout', requireLogin, (req, res) => {
+  req.session.destroy(error => {
+    if (error) {
+      return res.status(500).json({
+        message: 'Could not log out. Please try again.'
+      });
+    }
+
+    res.clearCookie('skillswap.sid', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    return res.json({
+      message: 'Logged out successfully!'
+    });
+  });
+});
+
 // =========================
 // FR3 - PROFILE
 // =========================
 
-// Only signed-in users can access their own profile.
-function requireLogin(req, res, next) {
-  if (!req.session.userId) {
-    return res.status(401).json({
-      message: 'Please log in first.'
-    });
-  }
-
-  next();
-}
-
-// Read the signed-in user's profile.
+// Read signed-in user's profile.
 app.get('/api/profile', requireLogin, async (req, res) => {
   try {
     const [users] = await db.execute(
@@ -249,7 +286,47 @@ app.get('/api/profile', requireLogin, async (req, res) => {
   }
 });
 
-// Serve the signed-in user's saved profile image.
+// Read another user's public profile.
+app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
+  const { userId } = req.params;
+
+  if (
+    !/^[1-9]\d*$/.test(userId) ||
+    !Number.isSafeInteger(Number(userId))
+  ) {
+    return res.status(400).json({
+      message: 'Invalid user ID.'
+    });
+  }
+
+  try {
+    const [users] = await db.execute(
+      'SELECT name, bio FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (!users[0]) {
+      return res.status(404).json({
+        message: 'User not found.'
+      });
+    }
+
+    return res.json({
+      profile: {
+        name: users[0].name,
+        bio: users[0].bio
+      }
+    });
+  } catch (error) {
+    console.error('Public profile lookup failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not load the profile.'
+    });
+  }
+});
+
+// Serve profile image.
 app.get('/api/profile/image', requireLogin, async (req, res) => {
   try {
     const [users] = await db.execute(
@@ -289,7 +366,7 @@ app.get('/api/profile/image', requireLogin, async (req, res) => {
   }
 });
 
-// Save profile details and optional profile image.
+// Update profile.
 app.put(
   '/api/profile',
   requireLogin,
@@ -405,7 +482,6 @@ app.put(
         );
       }
     } catch (error) {
-      // Remove the new image if the database save fails.
       if (newFilename) {
         await fs.unlink(
           path.join(profileImageDir, newFilename)
@@ -424,6 +500,79 @@ app.put(
     });
   }
 );
+
+// =========================
+// FR4 - SKILLS TO TEACH
+// =========================
+
+// Read signed-in user's teaching skills.
+app.get('/api/skills/teach', requireLogin, async (req, res) => {
+  try {
+    const [skills] = await db.execute(
+      'SELECT id, name FROM teaching_skills WHERE user_id = ? ORDER BY id',
+      [req.session.userId]
+    );
+
+    return res.json({
+      skills
+    });
+  } catch (error) {
+    console.error('Teaching skills lookup failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not load your teaching skills. Please try again.'
+    });
+  }
+});
+
+// Add teaching skill.
+app.post('/api/skills/teach', requireLogin, async (req, res) => {
+  const { name } = req.body || {};
+
+  if (typeof name !== 'string') {
+    return res.status(400).json({
+      message: 'Enter a skill name.'
+    });
+  }
+
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+
+  if (
+    cleanName.length === 0 ||
+    cleanName.length > 100
+  ) {
+    return res.status(400).json({
+      message: 'Skill name must contain 1–100 characters.'
+    });
+  }
+
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO teaching_skills (user_id, name) VALUES (?, ?)',
+      [req.session.userId, cleanName]
+    );
+
+    return res.status(201).json({
+      message: 'Teaching skill added successfully!',
+      skill: {
+        id: result.insertId,
+        name: cleanName
+      }
+    });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        message: 'This skill is already in your teaching list.'
+      });
+    }
+
+    console.error('Teaching skill save failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not save the skill. Please try again.'
+    });
+  }
+});
 
 // =========================
 // START SERVER
