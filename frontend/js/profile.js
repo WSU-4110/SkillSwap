@@ -99,17 +99,41 @@ if (editForm) {
     updateSkills("teach-list", teachSkills);
     updateSkills("learn-list", learnSkills);
 
-    // Add a teaching skill
-    document.getElementById("add-teach").addEventListener("click", function() {
-        const input = document.getElementById("teach-input");
-        const skill = input.value.trim();
+   // Add a teaching skill
+document.getElementById("add-teach").addEventListener("click", function() {
 
-        if (skill !== "") {
-            teachSkills.push(skill);
-            input.value = "";
-            updateSkills("teach-list", teachSkills);
-        }
+    const input = document.getElementById("teach-input");
+    const skill = input.value.trim();
+
+    // Check if skill is empty
+    if (skill === "") {
+        message.textContent = "Please enter a skill.";
+        message.style.color = "red";
+        return;
+    }
+
+    // Check if skill already exists
+    const skillExists = teachSkills.some(function(existingSkill) {
+        return existingSkill.toLowerCase() === skill.toLowerCase();
     });
+
+    if (skillExists) {
+        message.textContent = "This skill is already in your teaching list.";
+        message.style.color = "red";
+        return;
+    }
+
+    // Add skill
+    teachSkills.push(skill);
+
+    input.value = "";
+
+    updateSkills("teach-list", teachSkills);
+
+    message.textContent = "Skill added successfully!";
+    message.style.color = "green";
+
+});
 
     // Add a learning skill
     document.getElementById("add-learn").addEventListener("click", function() {
