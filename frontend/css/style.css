@@ -243,6 +243,7 @@ nav {
 .signup-text a {
     color: #0c5449;
     font-weight: bold;
+
 }
 /* MY PROFILE PAGE */
 
@@ -473,4 +474,156 @@ nav {
     .edit-skills {
         flex-direction: column;
     }
+}
+
+/* Student card grids */
+#all-users,
+#suggested-users {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-top: 25px;
+}
+
+/* Individual student cards */
+#all-users .skills-box,
+#suggested-users .skills-box {
+    min-width: 0;
+    padding: 25px;
+    background-color: #ffffff;
+    border: 1px solid #dce5e1;
+    border-top: 5px solid #0c5449;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow-wrap: anywhere;
+}
+
+/* Student names */
+#all-users .skills-box h3,
+#suggested-users .skills-box h3 {
+    color: #0c5449;
+    font-size: 23px;
+    margin-bottom: 12px;
+}
+
+/* Student information */
+#all-users .skills-box p,
+#suggested-users .skills-box p {
+    color: #374740;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+/* View Profile buttons */
+#all-users .skills-box a,
+#suggested-users .skills-box a {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 12px 20px;
+    background-color: #ffcc33;
+    color: #1e3b35;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#all-users .skills-box a:hover,
+#suggested-users .skills-box a:hover {
+    background-color: #edbb24;
+}
+
+#all-users .skills-box a:focus-visible,
+#suggested-users .skills-box a:focus-visible {
+    outline: 3px solid #0c5449;
+    outline-offset: 4px;
+}
+
+/* Stack cards on small screens */
+@media (max-width: 600px) {
+    #all-users,
+    #suggested-users {
+        grid-template-columns: 1fr;
+    }
+}
+
+.back-browse-button {
+    display: inline-block;
+    margin-bottom: 25px;
+    padding: 12px 22px;
+    background-color: #ffcc33;
+    color: #1e3b35;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.back-browse-button:visited {
+    color: #1e3b35;
+}
+
+.back-browse-button:hover {
+    background-color: #edbb24;
+}
+
+.back-browse-button:focus-visible {
+    outline: 3px solid #0c5449;
+    outline-offset: 4px;
+}
+
+
+/* MESSAGE USERS PAGE */
+
+.message-list {
+    min-height: 250px;
+    background-color: #f5f7f6;
+    border: 1px solid #dce5e1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.message-box {
+    background-color: #e6f4f1;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow-wrap: anywhere;
+}
+
+.message-box strong {
+    color: #0c5449;
+}
+
+.message-box p {
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+#message-form label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#message-input {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    resize: vertical;
+    margin-bottom: 15px;
+}
+
+#message-status,
+#conversation-status {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+#message-form .save-button {
+    display: inline-block;
 }

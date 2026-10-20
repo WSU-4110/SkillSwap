@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - SkillSwap</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
+
+        <div class="nav-buttons">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse</a>
+            <a href="profile.html">My Profile</a>
+        </div>
+    </nav>
+
+    <main class="profile-page">
+        <a href="browse.html" class="back-browse-button">← Back to Browse</a>
+
+        <p id="user-profile-status" role="status" aria-live="polite">
+            Loading profile...
+        </p>
+
+        <div id="user-profile-content" hidden>
+            <section class="profile-header">
+                <div class="profile-info">
+                    <h1 id="user-name"></h1>
+                    <p>Wayne State University</p>
+                    <p id="user-major"></p>
+                </div>
+                <a id="message-user-button"
+                    href="#"
+                    class="edit-button"
+                    hidden>
+                    Message User
+                </a>
+            </section>
+
+            <section class="profile-bio">
+                <h2>About</h2>
+                <p id="user-bio"></p>
+            </section>
+
+            <div class="profile-skills">
+                <section class="skills-box">
+                    <h2>Skills They Can Teach</h2>
+                    <ul id="user-teach-skills"></ul>
+                </section>
+
+                <section class="skills-box">
+                    <h2>Skills They Want to Learn</h2>
+                    <ul id="user-learn-skills"></ul>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/user-profile.js"></script>
+</body>
+</html>
