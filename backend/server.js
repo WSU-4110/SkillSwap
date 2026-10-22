@@ -311,7 +311,7 @@ app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
 
   try {
     const [users] = await db.execute(
-      'SELECT name, bio FROM users WHERE id = ?',
+      'SELECT name, major, bio FROM users WHERE id = ?',
       [userId]
     );
 
@@ -321,10 +321,23 @@ app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
       });
     }
 
+    const [teachingSkills] = await db.execute(
+      'SELECT name FROM teaching_skills WHERE user_id = ? ORDER BY id',
+      [userId]
+    );
+
+    const [learningSkills] = await db.execute(
+      'SELECT name FROM learning_skills WHERE user_id = ? ORDER BY id',
+      [userId]
+    );
+
     return res.json({
       profile: {
         name: users[0].name,
-        bio: users[0].bio
+        major: users[0].major,
+        bio: users[0].bio,
+        teachSkills: teachingSkills.map(skill => skill.name),
+        learnSkills: learningSkills.map(skill => skill.name)
       }
     });
   } catch (error) {
@@ -336,6 +349,7 @@ app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
   }
 });
 
+ 
 
 // Serve profile image.
 app.get('/api/profile/image', requireLogin, async (req, res) => {
@@ -601,9 +615,28 @@ app.use('/api/skills/learn', learningSkillsRouter);
 // =========================
 // START SERVER
 // =========================
+// List other students.
+app.get('/api/users', requireLogin, async (req, res) => {
+  try {
+    const [users] = await db.execute(
+      `SELECT id, name, major
+       FROM users
+       WHERE id <> ?
+       ORDER BY name, id`,
+      [req.session.userId]
+    );
 
+    return res.json({ users });
+  } catch (error) {
+    console.error('Student list lookup failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not load students.'
+    });
+  }
+});
 const port = Number(process.env.PORT) || 3000;
-
+app.use('/api/matches', require('./routes/skill-matches'));
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

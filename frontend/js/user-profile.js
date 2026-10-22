@@ -1,82 +1,89 @@
 "use strict";
 
-// Temporary sample data for testing the frontend.
-const sampleUsers = [
-    {
-        id: "1",
-        name: "Student One",
-        major: "Computer Science",
-        bio: "I enjoy coding and helping others learn.",
-        teachSkills: ["Python", "HTML"],
-        learnSkills: ["Drawing"]
-    },
-    {
-        id: "2",
-        name: "Student Two",
-        major: "Art",
-        bio: "I enjoy drawing and want to learn programming.",
-        teachSkills: ["Drawing"],
-        learnSkills: ["Python"]
-    }
-];
-
-function displayUserSkills(listId, skills) {
-    const list = document.getElementById(listId);
-    list.replaceChildren();
-
-    const items = Array.isArray(skills) && skills.length > 0
-        ? skills
-        : ["No skills added yet."];
-
-    items.forEach(function (skill) {
-        const item = document.createElement("li");
-        item.textContent = skill;
-        list.appendChild(item);
-    });
-}
-
-function loadUserProfile() {
+async function loadUserProfile() {
     const status = document.getElementById("user-profile-status");
     const content = document.getElementById("user-profile-content");
+    const messageButton = document.getElementById("message-user-button");
 
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("id");
 
-    const user = sampleUsers.find(function (student) {
-        return student.id === userId;
-    });
+    content.hidden = true;
+    messageButton.hidden = true;
 
-    if (!user) {
-        content.hidden = true;
-        status.textContent = "This user's profile could not be found.";
+    if (!userId || !/^[1-9]\d*$/.test(userId)) {
+        status.textContent = "Invalid student profile.";
         return;
     }
 
-    document.getElementById("user-name").textContent = user.name;
-    document.getElementById("user-major").textContent =
-        user.major || "Major not provided.";
-    document.getElementById("user-bio").textContent =
-        user.bio || "No bio provided.";
+    status.textContent = "Loading profile...";
 
-    displayUserSkills("user-teach-skills", user.teachSkills);
-    displayUserSkills("user-learn-skills", user.learnSkills);
+    try {
+        const response = await fetch(
+            "http://localhost:3000/api/users/" +
+                encodeURIComponent(userId) +
+                "/profile",
+            {
+                credentials: "include",
+                cache: "no-store"
+            }
+        );
 
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            return;
+        }
 
-    // Temporary accepted request for frontend testing only.
-    const acceptedUserIds = ["1"];
+        if (response.status === 404) {
+            status.textContent = "This user's profile could not be found.";
+            return;
+        }
 
-    const messageButton = document.getElementById("message-user-button");
+        if (!response.ok) {
+            throw new Error("Could not load profile.");
+        }
 
-    if (acceptedUserIds.includes(user.id)) {
-        messageButton.href = "messages.html?id=" + encodeURIComponent(user.id);
-        messageButton.hidden = false;
-    } else {
-        messageButton.hidden = true;
+        const data = await response.json();
+        const user = data.profile;
+
+        if (!user || typeof user.name !== "string") {
+            throw new Error("Unexpected profile response.");
+        }
+
+        document.getElementById("user-name").textContent = user.name;
+        document.getElementById("user-bio").textContent =
+            user.bio || "No bio provided.";
+
+       const major = document.getElementById("user-major");
+major.textContent = user.major || "Major not provided.";
+major.hidden = false;
+
+function displaySkills(listId, skills) {
+    const list = document.getElementById(listId);
+    list.replaceChildren();
+
+    const names = Array.isArray(skills) && skills.length > 0
+        ? skills
+        : ["No skills added yet."];
+
+    names.forEach(function (name) {
+        const item = document.createElement("li");
+        item.textContent = name;
+        list.appendChild(item);
+    });
+}
+
+displaySkills("user-teach-skills", user.teachSkills);
+displaySkills("user-learn-skills", user.learnSkills);
+document.querySelector(".profile-skills").hidden = false;
+
+        document.title = user.name + " - SkillSwap";
+        status.textContent = "";
+        content.hidden = false;
+    } catch (error) {
+        status.textContent =
+            "Could not load this profile. Please try refreshing.";
     }
-
-    document.title = user.name + " - SkillSwap";
-    status.textContent = "";
-    content.hidden = false;
-    }
+}
 
 loadUserProfile();

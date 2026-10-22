@@ -65,6 +65,30 @@ async function loadProfilePage() {
         }
 
         const profile = profileData.profile;
+        const profileImage = document.getElementById("profile-image");
+
+if (profileImage && profile.profile_image) {
+    try {
+        const imageResponse = await fetch(
+            `${API_URL}/api/profile/image`,
+            { credentials: "include" }
+        );
+
+        if (!imageResponse.ok) {
+            throw new Error("Could not load profile picture.");
+        }
+
+        const imageBlob = await imageResponse.blob();
+        const imageUrl = URL.createObjectURL(imageBlob);
+
+        profileImage.onload = () => URL.revokeObjectURL(imageUrl);
+        profileImage.src = imageUrl;
+        profileImage.hidden = false;
+    } catch (error) {
+        console.error(error);
+        profileImage.hidden = true;
+    }
+}
 
         document.getElementById("profile-name").textContent =
             profile.name || "";

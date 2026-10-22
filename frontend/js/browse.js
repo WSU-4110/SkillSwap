@@ -1,51 +1,6 @@
 "use strict";
 
-// Temporary sample students for frontend testing.
-const browseUsers = [
-    {
-        id: "1",
-        name: "Student One",
-        major: "Computer Science",
-        teachSkills: ["Python", "HTML"],
-        learnSkills: ["Drawing"]
-    },
-    {
-        id: "2",
-        name: "Student Two",
-        major: "Art",
-        teachSkills: ["Drawing"],
-        learnSkills: ["Python"]
-    }
-];
-
-function getCurrentProfile() {
-    try {
-        const saved = localStorage.getItem("skillswapProfile");
-        return saved ? JSON.parse(saved) : null;
-    } catch (error) {
-        return null;
-    }
-}
-
-function normalizeSkill(skill) {
-    return skill.trim().toLowerCase();
-}
-
-function getMatchingSkills(user, learningSkills) {
-    const wantedSkills = new Set(
-        learningSkills
-            .filter(function (skill) {
-                return typeof skill === "string" && skill.trim() !== "";
-            })
-            .map(normalizeSkill)
-    );
-
-    return user.teachSkills.filter(function (skill) {
-        return wantedSkills.has(normalizeSkill(skill));
-    });
-}
-
-function createStudentCard(user, matchingSkills) {
+function createStudentCard(user) {
     const card = document.createElement("article");
     card.className = "skills-box";
     card.style.marginBottom = "20px";
@@ -56,90 +11,77 @@ function createStudentCard(user, matchingSkills) {
     const major = document.createElement("p");
     major.textContent = user.major || "Major not provided.";
 
-    const teaching = document.createElement("p");
-    teaching.textContent = "Can teach: " + user.teachSkills.join(", ");
+    card.append(heading, major);
 
-    card.append(heading, major, teaching);
-
-    if (matchingSkills.length > 0) {
-        const match = document.createElement("p");
-        match.textContent = "Matching skills: " + matchingSkills.join(", ");
-        card.appendChild(match);
+    if (Array.isArray(user.matchingSkills) && user.matchingSkills.length) {
+        const skills = document.createElement("p");
+        skills.textContent =
+            "Matching skills: " + user.matchingSkills.join(", ");
+        card.appendChild(skills);
     }
 
     const link = document.createElement("a");
     link.href = "user-profile.html?id=" + encodeURIComponent(user.id);
     link.textContent = "View Profile";
-
     card.appendChild(link);
 
     return card;
 }
 
-function loadBrowsePage() {
-    const allUsers = document.getElementById("all-users");
-    const suggestedUsers = document.getElementById("suggested-users");
-    const browseStatus = document.getElementById("browse-status");
-    const suggestionsStatus = document.getElementById("suggestions-status");
+async function loadStudents(endpoint, listId, statusId, emptyMessage) {
+    const list = document.getElementById(listId);
+    const status = document.getElementById(statusId);
 
-    allUsers.replaceChildren();
-    suggestedUsers.replaceChildren();
+    list.replaceChildren();
+    status.textContent = "Loading students...";
 
-    const profile = getCurrentProfile();
+    try {
+        const response = await fetch(
+            "http://localhost:3000" + endpoint,
+            {
+                credentials: "include",
+                cache: "no-store"
+            }
+        );
 
-    // Exclude the current user when profile IDs are available.
-    const otherUsers = browseUsers.filter(function (user) {
-        return !profile ||
-            profile.id == null ||
-            String(user.id) !== String(profile.id);
-    });
-
-    otherUsers.forEach(function (user) {
-        allUsers.appendChild(createStudentCard(user, []));
-    });
-
-    browseStatus.textContent = otherUsers.length === 0
-        ? "No students are available yet."
-        : "";
-
-    if (!profile) {
-        suggestionsStatus.textContent =
-            "Save your profile and add skills you want to learn to see suggestions.";
-        return;
-    }
-
-    const learningSkills = Array.isArray(profile.learnSkills)
-        ? profile.learnSkills
-        : [];
-
-    const hasLearningSkills = learningSkills.some(function (skill) {
-        return typeof skill === "string" && skill.trim() !== "";
-    });
-
-    if (!hasLearningSkills) {
-        suggestionsStatus.textContent =
-            "Add skills you want to learn in My Profile to see suggestions.";
-        return;
-    }
-
-    let suggestionCount = 0;
-
-    otherUsers.forEach(function (user) {
-        const matchingSkills = getMatchingSkills(user, learningSkills);
-
-        if (matchingSkills.length > 0) {
-            suggestedUsers.appendChild(
-                createStudentCard(user, matchingSkills)
-            );
-            suggestionCount++;
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            return;
         }
-    });
 
-    suggestionsStatus.textContent = suggestionCount === 0
-        ? "No suggested students match your learning skills yet."
-        : "";
+        if (!response.ok) {
+            throw new Error("Could not load students.");
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data.users)) {
+            throw new Error("Unexpected response.");
+        }
+
+        data.users.forEach(function (user) {
+            list.appendChild(createStudentCard(user));
+        });
+
+        status.textContent = data.users.length === 0
+            ? data.message || emptyMessage
+            : "";
+    } catch (error) {
+        status.textContent =
+            "Could not load students. Please try refreshing.";
+    }
 }
 
-loadBrowsePage();
+loadStudents(
+    "/api/matches",
+    "suggested-users",
+    "suggestions-status",
+    "No matching students yet."
+);
 
-card.style.marginBottom = "20px";
+loadStudents(
+    "/api/users",
+    "all-users",
+    "browse-status",
+    "No other students are available yet."
+);
