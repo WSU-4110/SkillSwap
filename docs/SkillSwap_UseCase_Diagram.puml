@@ -1,0 +1,61 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "WSU Student" as Student
+
+rectangle "SkillSwap Website" {
+
+  usecase "Create Account" as Create
+  usecase "Log In" as Login
+  usecase "Create / Edit Profile" as Profile
+
+  usecase "Add Skills" as AddSkills
+  usecase "Add Skills to Teach" as Teach
+  usecase "Add Skills to Learn" as Learn
+
+  usecase "Search / Filter Users\nby Skill" as Search
+  usecase "View Suggested Users" as Suggested
+  usecase "Match Skills" as Match
+  usecase "View Other's Profile" as ViewProfile
+
+  usecase "Send Request" as SendRequest
+  usecase "Respond to Request" as Respond
+  usecase "Accept Request" as Accept
+  usecase "Reject Request" as Reject
+
+  usecase "Schedule Session" as Schedule
+  usecase "Message Users" as Message
+
+  usecase "View Ratings\nand Reviews" as ViewReviews
+  usecase "Submit Rating\nand Review" as SubmitReview
+
+  usecase "Report User" as Report
+}
+
+Student --> Create
+Student --> Login
+Student --> Profile
+Student --> AddSkills
+Student --> Search
+Student --> Suggested
+Student --> ViewProfile
+Student --> SendRequest
+Student --> Respond
+Student --> Schedule
+Student --> Message
+Student --> ViewReviews
+Student --> SubmitReview
+Student --> Report
+
+AddSkills <|-- Teach
+AddSkills <|-- Learn
+
+Suggested ..> Match : <<include>>
+
+Respond <|-- Accept
+Respond <|-- Reject
+
+SubmitReview ..> Schedule : <<extend>>\n[after completed session]
+
+@enduml
