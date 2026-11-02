@@ -1,0 +1,4 @@
+USE skillswap;
+
+ALTER TABLE users
+ADD COLUMN bio VARCHAR(500) NOT NULL DEFAULT '';

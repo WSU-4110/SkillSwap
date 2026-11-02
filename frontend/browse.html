@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse - SkillSwap</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
+
+        <div class="nav-buttons">
+            <a href="index.html">Home</a>
+            <a href="browse.html" aria-current="page">Browse</a>
+            <a href="profile.html">My Profile</a>
+        </div>
+    </nav>
+
+    <main class="profile-page">
+        <section class="profile-bio">
+            <h1>Browse Students</h1>
+            <p>Find students who can teach skills you want to learn.</p>
+        </section>
+
+        <section class="profile-bio" aria-labelledby="suggested-heading">
+            <h2 id="suggested-heading">Suggested Students</h2>
+
+            <p id="suggestions-status" role="status" aria-live="polite">
+                Loading suggestions...
+            </p>
+
+            <div id="suggested-users"></div>
+        </section>
+
+        <section class="profile-bio" aria-labelledby="all-heading">
+            <h2 id="all-heading">All Students</h2>
+
+            <p id="browse-status" role="status" aria-live="polite">
+                Loading students...
+            </p>
+
+            <div id="all-users"></div>
+        </section>
+    </main>
+
+    <script src="js/browse.js"></script>
+</body>
+</html>

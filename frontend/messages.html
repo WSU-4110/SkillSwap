@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - SkillSwap</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
+
+        <div class="nav-buttons">
+            <a href="index.html">Home</a>
+            <a href="browse.html">Browse</a>
+            <a href="profile.html">My Profile</a>
+        </div>
+    </nav>
+
+    <main class="profile-page">
+
+        <a href="browse.html" class="back-browse-button">
+            ← Back to Browse
+        </a>
+
+        <section class="profile-bio">
+            <h1>Messages</h1>
+            <p id="conversation-name">Loading conversation...</p>
+            <p id="conversation-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="conversation-content" class="profile-bio" hidden>
+
+            <h2>Conversation</h2>
+
+            <div id="message-list" class="message-list"></div>
+
+            <form id="message-form">
+                <label for="message-input">Your Message</label>
+
+                <textarea
+                    id="message-input"
+                    placeholder="Type your message..."
+                    required
+                ></textarea>
+
+                <button type="submit" class="save-button">
+                    Send Message
+                </button>
+            </form>
+
+            <p id="message-status" role="status" aria-live="polite"></p>
+
+        </section>
+
+    </main>
+
+    <script src="js/messages.js"></script>
+
+</body>
+</html>
