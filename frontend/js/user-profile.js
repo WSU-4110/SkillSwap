@@ -77,7 +77,22 @@ displaySkills("user-teach-skills", user.teachSkills);
 displaySkills("user-learn-skills", user.learnSkills);
 document.querySelector(".profile-skills").hidden = false;
 
-        document.title = user.name + " - SkillSwap";
+const image = document.getElementById("user-profile-image");
+
+image.onload = function () {
+    image.hidden = false;
+};
+
+image.onerror = function () {
+    image.hidden = true;
+};
+
+image.alt = user.name + "'s profile picture";
+image.src =
+    "http://localhost:3000/api/users/" +
+    encodeURIComponent(userId) +
+    "/profile/image";       
+document.title = user.name + " - SkillSwap";
         status.textContent = "";
         content.hidden = false;
     } catch (error) {

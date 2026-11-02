@@ -637,6 +637,50 @@ app.get('/api/users', requireLogin, async (req, res) => {
 });
 const port = Number(process.env.PORT) || 3000;
 app.use('/api/matches', require('./routes/skill-matches'));
+app.get('/api/users/:userId/profile/image', requireLogin, async (req, res) => {
+  const { userId } = req.params;
+
+  if (
+    !/^[1-9]\d*$/.test(userId) ||
+    !Number.isSafeInteger(Number(userId))
+  ) {
+    return res.status(400).json({
+      message: 'Invalid user ID.'
+    });
+  }
+
+  try {
+    const [users] = await db.execute(
+      'SELECT profile_image FROM users WHERE id = ?',
+      [userId]
+    );
+
+    const filename = users[0]?.profile_image;
+
+    if (!filename || !/^[a-f0-9-]{36}\.webp$/.test(filename)) {
+      return res.status(404).json({
+        message: 'No profile image.'
+      });
+    }
+
+    return res.sendFile(
+      path.join(profileImageDir, filename),
+      error => {
+        if (error && !res.headersSent) {
+          res.status(error.statusCode === 404 ? 404 : 500).json({
+            message: 'Could not load the profile image.'
+          });
+        }
+      }
+    );
+  } catch (error) {
+    console.error('Student image lookup failed:', error.code);
+
+    return res.status(500).json({
+      message: 'Could not load the profile image.'
+    });
+  }
+});
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
