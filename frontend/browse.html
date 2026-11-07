@@ -26,6 +26,25 @@
             <p>Find students who can teach skills you want to learn.</p>
         </section>
 
+        <section class="profile-bio">
+            <h2>Search Students by Skill</h2>
+            <p>Find students who can teach a skill.</p>
+
+            <form id="search-form">
+                <input
+                    type="text"
+                    id="skill-search"
+                    placeholder="Enter a skill (e.g., Python)"
+                    aria-label="Search by skill"
+                    required
+                >
+                <button type="submit">Search</button>
+            </form>
+
+            <p id="search-status" role="status" aria-live="polite"></p>
+            <div id="search-results"></div>
+        </section>
+        
         <section class="profile-bio" aria-labelledby="suggested-heading">
             <h2 id="suggested-heading">Suggested Students</h2>
 
