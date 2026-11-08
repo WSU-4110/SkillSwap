@@ -85,3 +85,61 @@ loadStudents(
     "browse-status",
     "No other students are available yet."
 );
+
+// FR-17: Search students by skill
+const searchForm = document.getElementById("search-form");
+const skillSearch = document.getElementById("skill-search");
+const searchResults = document.getElementById("search-results");
+const searchStatus = document.getElementById("search-status");
+
+searchForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const skill = skillSearch.value.trim();
+
+    if (!skill) {
+        searchStatus.textContent = "Please enter a skill.";
+        return;
+    }
+
+    searchResults.replaceChildren();
+    searchStatus.textContent = "Searching students...";
+
+    try {
+        const response = await fetch(
+            "http://localhost:3000/api/users/search?skill=" +
+                encodeURIComponent(skill),
+            { credentials: "include", cache: "no-store" }
+        );
+
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error("Search failed.");
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data.users)) {
+            throw new Error("Unexpected response.");
+        }
+
+        data.users.forEach(function (user) {
+            searchResults.appendChild(createStudentCard(user));
+        });
+
+        searchStatus.textContent = data.users.length === 0
+            ? data.message || "No students found."
+            : data.users.length + " student(s) found.";
+
+    } catch (error) {
+        searchStatus.textContent =
+            "Could not search students. Please try again.";
+    }
+});
+
+/* FR-17 Search Students */
+
