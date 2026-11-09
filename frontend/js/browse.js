@@ -1,4 +1,9 @@
+
 "use strict";
+
+// =========================
+// CREATE STUDENT CARD
+// =========================
 
 function createStudentCard(user) {
     const card = document.createElement("article");
@@ -28,12 +33,27 @@ function createStudentCard(user) {
     return card;
 }
 
+// =========================
+// NFR-5: LOAD STUDENTS
+// =========================
+
 async function loadStudents(endpoint, listId, statusId, emptyMessage) {
     const list = document.getElementById(listId);
     const status = document.getElementById(statusId);
 
+    const loadingId =
+        listId === "suggested-users"
+            ? "suggestions-loading"
+            : "browse-loading";
+
+    const loadingIndicator = document.getElementById(loadingId);
+
     list.replaceChildren();
-    status.textContent = "Loading students...";
+    status.textContent = "";
+
+    if (loadingIndicator) {
+        loadingIndicator.hidden = false;
+    }
 
     try {
         const response = await fetch(
@@ -59,18 +79,31 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
             throw new Error("Unexpected response.");
         }
 
-        data.users.forEach(function (user) {
+        data.users.forEach(function(user) {
             list.appendChild(createStudentCard(user));
         });
 
         status.textContent = data.users.length === 0
             ? data.message || emptyMessage
             : "";
+
     } catch (error) {
+        console.error("Student loading error:", error);
+
         status.textContent =
             "Could not load students. Please try refreshing.";
+
+    } finally {
+        // NFR-5: Always remove spinner when loading finishes.
+        if (loadingIndicator) {
+            loadingIndicator.hidden = true;
+        }
     }
 }
+
+// =========================
+// INITIAL STUDENT LOADING
+// =========================
 
 loadStudents(
     "/api/matches",
@@ -86,13 +119,16 @@ loadStudents(
     "No other students are available yet."
 );
 
-// FR-17: Search students by skill
+// =========================
+// FR-17: SEARCH STUDENTS
+// =========================
+
 const searchForm = document.getElementById("search-form");
 const skillSearch = document.getElementById("skill-search");
 const searchResults = document.getElementById("search-results");
 const searchStatus = document.getElementById("search-status");
 
-searchForm.addEventListener("submit", async function (event) {
+searchForm.addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const skill = skillSearch.value.trim();
@@ -109,7 +145,10 @@ searchForm.addEventListener("submit", async function (event) {
         const response = await fetch(
             "http://localhost:3000/api/users/search?skill=" +
                 encodeURIComponent(skill),
-            { credentials: "include", cache: "no-store" }
+            {
+                credentials: "include",
+                cache: "no-store"
+            }
         );
 
         if (response.status === 401) {
@@ -127,7 +166,7 @@ searchForm.addEventListener("submit", async function (event) {
             throw new Error("Unexpected response.");
         }
 
-        data.users.forEach(function (user) {
+        data.users.forEach(function(user) {
             searchResults.appendChild(createStudentCard(user));
         });
 
@@ -142,4 +181,3 @@ searchForm.addEventListener("submit", async function (event) {
 });
 
 /* FR-17 Search Students */
-

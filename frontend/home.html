@@ -39,7 +39,7 @@
                 SKILLSWAP DASHBOARD
             </span>
 
-            <h1 id="welcome">Welcome back!</h1>
+            <h1 id="welcome">Welcome!</h1>
 
             <p>
                 Ready to learn something new?
@@ -113,9 +113,19 @@
 
         </section>
 
-        <p id="status" role="status" aria-live="polite">
-            Checking your login...
-        </p>
+        <!-- NFR-5: Loading Indicator -->
+        <div
+            id="loading-indicator"
+            class="dashboard-loading"
+            role="status"
+            aria-live="polite"
+        >
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Loading your dashboard...</span>
+        </div>
+
+        <!-- Error / Status Message -->
+        <p id="status" role="status" aria-live="polite" hidden></p>
 
     </main>
 
@@ -127,6 +137,9 @@
 
         const statusMessage =
             document.getElementById('status');
+
+        const loadingIndicator =
+            document.getElementById('loading-indicator');
 
         // Check whether the user is logged in.
         async function checkLogin() {
@@ -161,9 +174,15 @@
                 // Display logout button.
                 logoutButton.hidden = false;
 
+                // Hide loading indicator.
+                loadingIndicator.hidden = true;
                 statusMessage.hidden = true;
 
             } catch (error) {
+                // Hide spinner and display error.
+                loadingIndicator.hidden = true;
+                statusMessage.hidden = false;
+
                 statusMessage.textContent =
                     'Could not load your dashboard. Please try again.';
             }
