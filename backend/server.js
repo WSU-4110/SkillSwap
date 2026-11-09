@@ -611,6 +611,9 @@ const learningSkillsRouter = require('./routes/learning-skills');
 
 app.use('/api/skills/learn', learningSkillsRouter);
 
+// FR10 - Send swap requests.
+app.use('/api/requests', require('./routes/requests'));
+
 
 // =========================
 // START SERVER
