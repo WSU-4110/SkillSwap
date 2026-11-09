@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | SkillSwap</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dashboard-page">
+
+    <!-- Navigation -->
+    <nav>
+        <a href="home.html" class="logo">
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
+
+        <div class="nav-buttons">
+            <a href="home.html" aria-current="page">Home</a>
+            <a href="browse.html">Browse</a>
+            <a href="profile.html">My Profile</a>
+            <a href="messages.html">Messages</a>
+
+            <button type="button" id="logout-btn" hidden>
+                Log Out
+            </button>
+        </div>
+    </nav>
+
+    <!-- Logged-in Dashboard -->
+    <main class="dashboard-main">
+
+        <section class="dashboard-welcome" id="dashboard" hidden>
+
+            <span class="dashboard-label">
+                SKILLSWAP DASHBOARD
+            </span>
+
+            <h1 id="welcome">Welcome back!</h1>
+
+            <p>
+                Ready to learn something new?
+                Explore skills, meet students, and make connections.
+            </p>
+
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="dashboard-actions" id="dashboard-actions" hidden>
+
+            <div class="dashboard-section-heading">
+                <h2>Quick Actions</h2>
+                <p>What would you like to do today?</p>
+            </div>
+
+            <div class="dashboard-card-grid">
+
+                <a href="browse.html" class="dashboard-card">
+                    <span class="dashboard-card-icon" aria-hidden="true">
+                        &#128269;
+                    </span>
+
+                    <h3>Browse Skills</h3>
+
+                    <p>
+                        Discover students and find
+                        skills you want to learn.
+                    </p>
+
+                    <span class="dashboard-card-link">
+                        Explore Skills &rarr;
+                    </span>
+                </a>
+
+                <a href="profile.html" class="dashboard-card">
+                    <span class="dashboard-card-icon" aria-hidden="true">
+                        &#128100;
+                    </span>
+
+                    <h3>My Profile</h3>
+
+                    <p>
+                        View your profile and manage
+                        the skills you teach and learn.
+                    </p>
+
+                    <span class="dashboard-card-link">
+                        View Profile &rarr;
+                    </span>
+                </a>
+
+                <a href="messages.html" class="dashboard-card">
+                    <span class="dashboard-card-icon" aria-hidden="true">
+                        &#128172;
+                    </span>
+
+                    <h3>Messages</h3>
+
+                    <p>
+                        Check your conversations
+                        and connect with other students.
+                    </p>
+
+                    <span class="dashboard-card-link">
+                        View Messages &rarr;
+                    </span>
+                </a>
+
+            </div>
+
+        </section>
+
+        <p id="status" role="status" aria-live="polite">
+            Checking your login...
+        </p>
+
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        const logoutButton =
+            document.getElementById('logout-btn');
+
+        const statusMessage =
+            document.getElementById('status');
+
+        // Check whether the user is logged in.
+        async function checkLogin() {
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/profile`,
+                    {
+                        credentials: 'include',
+                        cache: 'no-store'
+                    }
+                );
+
+                if (response.status === 401) {
+                    window.location.replace('login.html');
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Could not load profile');
+                }
+
+                const data = await response.json();
+
+                // Display the logged-in user's name.
+                document.getElementById('welcome').textContent =
+                    `Welcome, ${data.profile.name}!`;
+
+                // Display the dashboard.
+                document.getElementById('dashboard').hidden = false;
+                document.getElementById('dashboard-actions').hidden = false;
+
+                // Display logout button.
+                logoutButton.hidden = false;
+
+                statusMessage.hidden = true;
+
+            } catch (error) {
+                statusMessage.textContent =
+                    'Could not load your dashboard. Please try again.';
+            }
+        }
+
+        // Log out and end the user's session.
+        logoutButton.addEventListener('click', async () => {
+            logoutButton.disabled = true;
+
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/logout`,
+                    {
+                        method: 'POST',
+                        credentials: 'include'
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Logout failed');
+                }
+
+                window.location.replace('login.html');
+
+            } catch (error) {
+                statusMessage.hidden = false;
+                statusMessage.textContent =
+                    'Could not log out. Please try again.';
+
+                logoutButton.disabled = false;
+            }
+        });
+
+        checkLogin();
+    </script>
+
+</body>
+</html>

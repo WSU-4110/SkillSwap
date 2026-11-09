@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,89 +9,165 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+<body class="modern-edit-page">
 
     <nav>
-        <a href="index.html" class="logo">
+        <a href="home.html" class="logo">
             <img src="images/logo.png" alt="SkillSwap logo">
             <span>SkillSwap</span>
         </a>
 
         <div class="nav-buttons">
-            <a href="index.html">Home</a>
+            <a href="home.html">Home</a>
             <a href="browse.html">Browse</a>
             <a href="profile.html">My Profile</a>
+            <a href="messages.html">Messages</a>
+            <button type="button" id="logout-btn">Log Out</button>
         </div>
     </nav>
 
-    <div class="edit-profile-container">
+    <main class="edit-profile-container">
 
-        <h1>Edit Profile</h1>
+        <header class="edit-page-heading">
+            <h1>Edit Your Profile</h1>
+            <p>Update your information and manage your skills.</p>
+        </header>
 
         <form id="edit-profile-form">
 
-            <div class="profile-fields">
+            <section class="edit-personal-card">
 
-                <div>
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" placeholder="Enter your full name">
+                <h2>Personal Information</h2>
+
+                <div class="profile-fields">
+
+                    <div>
+                        <label for="name">Full Name</label>
+                        <input
+                            type="text"
+                            id="name"
+                            placeholder="Enter your full name"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="major">Major</label>
+                        <input
+                            type="text"
+                            id="major"
+                            placeholder="Enter your major"
+                        >
+                    </div>
+
                 </div>
 
-                <div>
-                    <label for="major">Major</label>
-                    <input type="text" id="major" placeholder="Enter your major">
-                </div>
+                <label for="bio">Bio</label>
+                <textarea
+                    id="bio"
+                    placeholder="Tell us about yourself"
+                ></textarea>
 
-            </div>
+                <label for="photo">Change Photo</label>
+                <input
+                    type="file"
+                    id="photo"
+                    accept="image/*"
+                >
 
-            <label for="bio">Bio</label>
-            <textarea id="bio" placeholder="Tell us about yourself"></textarea>
-
-            <label for="photo">Change Photo</label>
-            <input type="file" id="photo" accept="image/*">
+            </section>
 
             <div class="edit-skills">
 
-                <div class="edit-skills-box">
+                <section class="edit-skills-box">
 
                     <h2>Skills I Can Teach</h2>
 
                     <div class="add-skill">
-                        <input type="text" id="teach-input" placeholder="Add a skill...">
-                        <button type="button" id="add-teach">Add</button>
+                        <input
+                            type="text"
+                            id="teach-input"
+                            placeholder="Add a skill..."
+                        >
+                        <button type="button" id="add-teach">
+                            Add
+                        </button>
                     </div>
 
                     <ul id="teach-list"></ul>
 
-                </div>
+                </section>
 
-                <div class="edit-skills-box">
+                <section class="edit-skills-box">
 
                     <h2>Skills I Want to Learn</h2>
 
                     <div class="add-skill">
-                        <input type="text" id="learn-input" placeholder="Add a skill...">
-                        <button type="button" id="add-learn">Add</button>
+                        <input
+                            type="text"
+                            id="learn-input"
+                            placeholder="Add a skill..."
+                        >
+                        <button type="button" id="add-learn">
+                            Add
+                        </button>
                     </div>
 
                     <ul id="learn-list"></ul>
 
-                </div>
+                </section>
 
             </div>
 
-            <p id="profile-message" role="status" aria-live="polite"></p>
+            <p
+                id="profile-message"
+                role="status"
+                aria-live="polite"
+            ></p>
 
             <div class="profile-buttons">
-                <a href="profile.html" class="cancel-button">Cancel</a>
-                <button type="submit" class="save-button">Save Changes</button>
+                <a href="profile.html" class="cancel-button">
+                    Cancel
+                </a>
+
+                <button type="submit" class="save-button">
+                    Save Changes
+                </button>
             </div>
 
         </form>
 
-    </div>
+    </main>
 
     <script src="js/profile.js"></script>
+
+    <script>
+        document.getElementById('logout-btn')
+            .addEventListener('click', async () => {
+
+                const button = document.getElementById('logout-btn');
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(
+                        'http://localhost:3000/api/logout',
+                        {
+                            method: 'POST',
+                            credentials: 'include'
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error('Logout failed');
+                    }
+
+                    window.location.replace('login.html');
+
+                } catch (error) {
+                    alert('Could not log out. Please try again.');
+                    button.disabled = false;
+                }
+            });
+    </script>
 
 </body>
 </html>
