@@ -54,8 +54,12 @@ function displayMessages() {
 
 function loadConversation() {
     if (!user) {
-        conversationName.textContent = "";
-        conversationStatus.textContent = "Student not found.";
+        conversationName.textContent = "Your Messages";
+
+        conversationStatus.textContent = userId
+            ? "Student not found."
+            : "No conversation selected. Browse students to start a conversation.";
+
         return;
     }
 
@@ -70,14 +74,20 @@ function loadConversation() {
 
     // Local demo storage, not a real private conversation.
     try {
-        const savedMessages = localStorage.getItem("skillswapMessages-" + user.id);
-        const parsedMessages = savedMessages ? JSON.parse(savedMessages) : [];
+        const savedMessages = localStorage.getItem(
+            "skillswapMessages-" + user.id
+        );
+
+        const parsedMessages = savedMessages
+            ? JSON.parse(savedMessages)
+            : [];
 
         messages = Array.isArray(parsedMessages)
             ? parsedMessages.filter(function (message) {
                 return typeof message === "string";
             })
             : [];
+
     } catch (error) {
         messages = [];
         conversationStatus.textContent =
@@ -92,7 +102,8 @@ messageForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
     if (!user || !acceptedUserIds.includes(user.id)) {
-        messageStatus.textContent = "You cannot send messages to this student.";
+        messageStatus.textContent =
+            "You cannot send messages to this student.";
         messageStatus.style.color = "red";
         return;
     }
@@ -115,10 +126,13 @@ messageForm.addEventListener("submit", function (event) {
 
         messages = updatedMessages;
         messageInput.value = "";
-        messageStatus.textContent = "Demo message saved successfully!";
+
+        messageStatus.textContent =
+            "Demo message saved successfully!";
         messageStatus.style.color = "green";
 
         displayMessages();
+
     } catch (error) {
         messageStatus.textContent =
             "Message could not be saved. Please try again.";
