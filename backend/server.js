@@ -635,6 +635,8 @@ app.get('/api/users', requireLogin, async (req, res) => {
     });
   }
 });
+// FR10-12 - View incoming and outgoing request status.
+app.use('/api/requests', require('./routes/request-status'));
 const port = Number(process.env.PORT) || 3000;
 app.use('/api/matches', require('./routes/skill-matches'));
 app.use('/api/users/search', require('./routes/search-users'));
