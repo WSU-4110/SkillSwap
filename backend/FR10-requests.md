@@ -24,9 +24,9 @@ A successful response has status 201 and contains:
 }
 ```
 
-Errors: 400 for invalid IDs or requesting yourself, 401 when logged out, 404 when the recipient does not exist, and 500 when saving fails.
+Errors: 400 for invalid IDs or requesting yourself, 401 when logged out, 404 when the recipient does not exist, 409 for a duplicate pending request, and 500 when saving fails.
 
-This task creates requests only. Accepting, rejecting, reading request status, and preventing duplicate requests are separate planned tasks. Repeated requests are currently allowed.
+This task creates requests only. Accepting, rejecting, and reading request status are separate tasks. Import database/prevent-duplicate-requests.sql after the requests table is created to prevent duplicate pending requests in either direction. Completed requests do not prevent a new request.
 
 ## Verification
 

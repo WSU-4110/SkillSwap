@@ -48,6 +48,12 @@ router.post('/', async (req, res) => {
       }
     });
   } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        message: 'A pending request already exists between you and this student.'
+      });
+    }
+
     console.error('Send request failed:', error.code);
     return res.status(500).json({
       message: 'Could not send the request. Please try again.'
