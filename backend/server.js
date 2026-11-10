@@ -611,7 +611,7 @@ const learningSkillsRouter = require('./routes/learning-skills');
 
 app.use('/api/skills/learn', learningSkillsRouter);
 
-
+app.use('/api/messages', require('./routes/get-message'));
 // =========================
 // START SERVER
 // =========================
