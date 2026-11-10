@@ -122,15 +122,9 @@
     <script>
         const API_URL = 'http://localhost:3000';
 
-        const logoutButton =
-            document.getElementById('logout-btn');
-
-        const statusMessage =
-            document.getElementById('status');
-
-        // Check whether the user is logged in.
-        async function checkLogin() {
-            try {
+        // Service responsible for retrieving profile data.
+        class ProfileService {
+            async getProfile() {
                 const response = await fetch(
                     `${API_URL}/api/profile`,
                     {
@@ -140,8 +134,7 @@
                 );
 
                 if (response.status === 401) {
-                    window.location.replace('login.html');
-                    return;
+                    return null;
                 }
 
                 if (!response.ok) {
@@ -149,31 +142,13 @@
                 }
 
                 const data = await response.json();
-
-                // Display the logged-in user's name.
-                document.getElementById('welcome').textContent =
-                    `Welcome, ${data.profile.name}!`;
-
-                // Display the dashboard.
-                document.getElementById('dashboard').hidden = false;
-                document.getElementById('dashboard-actions').hidden = false;
-
-                // Display logout button.
-                logoutButton.hidden = false;
-
-                statusMessage.hidden = true;
-
-            } catch (error) {
-                statusMessage.textContent =
-                    'Could not load your dashboard. Please try again.';
+                return data.profile;
             }
         }
 
-        // Log out and end the user's session.
-        logoutButton.addEventListener('click', async () => {
-            logoutButton.disabled = true;
-
-            try {
+        // Service responsible for ending user sessions.
+        class AuthService {
+            async logout() {
                 const response = await fetch(
                     `${API_URL}/api/logout`,
                     {
@@ -185,19 +160,73 @@
                 if (!response.ok) {
                     throw new Error('Logout failed');
                 }
-
-                window.location.replace('login.html');
-
-            } catch (error) {
-                statusMessage.hidden = false;
-                statusMessage.textContent =
-                    'Could not log out. Please try again.';
-
-                logoutButton.disabled = false;
             }
-        });
+        }
 
-        checkLogin();
+        // FACADE DESIGN PATTERN
+        // Provides a simple interface to the dashboard services.
+        class DashboardFacade {
+            constructor() {
+                this.profileService = new ProfileService();
+                this.authService = new AuthService();
+
+                this.logoutButton =
+                    document.getElementById('logout-btn');
+
+                this.statusMessage =
+                    document.getElementById('status');
+            }
+
+            async initializeDashboard() {
+                try {
+                    const profile =
+                        await this.profileService.getProfile();
+
+                    if (!profile) {
+                        window.location.replace('login.html');
+                        return;
+                    }
+
+                    document.getElementById('welcome').textContent =
+                        `Welcome, ${profile.name}!`;
+
+                    document.getElementById('dashboard').hidden = false;
+                    document.getElementById('dashboard-actions').hidden = false;
+
+                    this.logoutButton.hidden = false;
+                    this.statusMessage.hidden = true;
+
+                } catch (error) {
+                    this.statusMessage.textContent =
+                        'Could not load your dashboard. Please try again.';
+                }
+            }
+
+            async logoutUser() {
+                this.logoutButton.disabled = true;
+
+                try {
+                    await this.authService.logout();
+
+                    window.location.replace('login.html');
+
+                } catch (error) {
+                    this.statusMessage.hidden = false;
+                    this.statusMessage.textContent =
+                        'Could not log out. Please try again.';
+
+                    this.logoutButton.disabled = false;
+                }
+            }
+        }
+
+        // The page interacts only with the Facade.
+        const dashboard = new DashboardFacade();
+
+        document.getElementById('logout-btn')
+            .addEventListener('click', () => dashboard.logoutUser());
+
+        dashboard.initializeDashboard();
     </script>
 
 </body>
