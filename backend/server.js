@@ -682,6 +682,8 @@ app.get('/api/users/:userId/profile/image', requireLogin, async (req, res) => {
     });
   }
 });
+// FR09 - Send Message API
+app.use('/api/messages', require('./routes/send-message'));
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
