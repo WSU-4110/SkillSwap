@@ -684,6 +684,8 @@ app.get('/api/users/:userId/profile/image', requireLogin, async (req, res) => {
 });
 // FR09 - Conversation History API
 app.use('/api/conversations', require('./routes/conversation-history'));
+// FR09 - Send Message API
+app.use('/api/messages', require('./routes/send-message'));
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
