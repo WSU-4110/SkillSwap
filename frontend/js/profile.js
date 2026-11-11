@@ -1,5 +1,35 @@
 const API_URL = "http://localhost:3000";
+// Strategy Pattern for Skill Formatting
 
+class SkillFormatStrategy {
+    format(skill) {
+        throw new Error("Format method must be implemented");
+    }
+}
+
+class DefaultSkillStrategy extends SkillFormatStrategy {
+    format(skill) {
+        return typeof skill === "string" ? skill : skill.name;
+    }
+}
+
+class SkillFormatter {
+    constructor(strategy) {
+        this.strategy = strategy;
+    }
+
+    setStrategy(strategy) {
+        this.strategy = strategy;
+    }
+
+    format(skill) {
+        return this.strategy.format(skill);
+    }
+}
+
+const skillFormatter = new SkillFormatter(
+    new DefaultSkillStrategy()
+);
 // =========================
 // DISPLAY SKILLS
 // =========================
@@ -23,8 +53,7 @@ function displaySkills(listId, skills) {
     skills.forEach(function(skill) {
         const item = document.createElement("li");
 
-        item.textContent =
-            typeof skill === "string" ? skill : skill.name;
+        item.textContent = skillFormatter.format(skill);
 
         list.appendChild(item);
     });
