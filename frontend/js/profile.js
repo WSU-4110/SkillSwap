@@ -265,12 +265,7 @@ async function setupEditProfilePage() {
         skills.forEach(function(skill) {
             const item = document.createElement("li");
 
-            const skillName =
-                typeof skill === "string"
-                    ? skill
-                    : skill.name;
-
-            item.textContent = skillName;
+            item.textContent = skillFormatter.format(skill);
 
             list.appendChild(item);
         });
