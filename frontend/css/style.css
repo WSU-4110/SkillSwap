@@ -1757,6 +1757,7 @@ body:has(a[href="login.html"]):has(form) {
 #profile-content[hidden],
 .dashboard-loading[hidden] {
     display: none !important;
+}
 
 /* FR-10: Send Swap Request */
 
@@ -1849,4 +1850,90 @@ body:has(a[href="login.html"]):has(form) {
         width: 100%;
     }
 
+}
+
+/* FR11: Incoming Swap Requests */
+
+.requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.request-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    border: 1px solid #e5e9e7;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.request-card h3 {
+    color: #0c5449;
+    font-size: 19px;
+    margin: 0;
+}
+
+.request-status {
+    color: #64736f;
+    font-size: 14px;
+    margin: 0;
+}
+
+.request-card .swap-request-button {
+    background-color: #ffcc33;
+    color: #0c5449;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.request-card .swap-request-button:hover:not(:disabled) {
+    background-color: #f0bd20;
+}
+
+.request-card .swap-request-button:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
+
+#requests-status {
+    color: #0c5449;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+#load-more-requests {
+    margin-top: 20px;
+    padding: 12px 22px;
+    background-color: #0c5449;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#load-more-requests[hidden] {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .request-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .request-card .swap-request-button {
+        width: 100%;
+    }
 }
