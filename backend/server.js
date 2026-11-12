@@ -638,6 +638,8 @@ app.get('/api/users', requireLogin, async (req, res) => {
     });
   }
 });
+// FR10-12 - View incoming and outgoing request status.
+app.use('/api/requests', require('./routes/request-status'));
 const port = Number(process.env.PORT) || 3000;
 // FR11 - Accept pending swap requests.
 app.use('/api/requests', require('./routes/accept-request'));
