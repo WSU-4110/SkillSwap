@@ -105,7 +105,7 @@ app.post('/api/register', async (req, res) => {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
   ) {
     return res.status(400).json({
-      message: 'Enter a name of 1–100 characters and a valid email.'
+      message: 'Enter a name of 1â€“100 characters and a valid email.'
     });
   }
 
@@ -406,7 +406,7 @@ app.put(
       name.trim().length > 100
     ) {
       return res.status(400).json({
-        message: 'Full name must contain 1–100 characters.'
+        message: 'Full name must contain 1â€“100 characters.'
       });
     }
 
@@ -570,7 +570,7 @@ app.post('/api/skills/teach', requireLogin, async (req, res) => {
     cleanName.length > 100
   ) {
     return res.status(400).json({
-      message: 'Skill name must contain 1–100 characters.'
+      message: 'Skill name must contain 1â€“100 characters.'
     });
   }
 
@@ -614,7 +614,8 @@ app.use('/api/skills/learn', learningSkillsRouter);
 // FR10 - Send swap requests.
 app.use('/api/requests', require('./routes/requests'));
 
-
+// FR09 - Get messages.
+app.use('/api/messages', require('./routes/get-message'));
 // =========================
 // START SERVER
 // =========================
