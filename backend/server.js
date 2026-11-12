@@ -642,6 +642,8 @@ const port = Number(process.env.PORT) || 3000;
 // FR11 - Accept pending swap requests.
 app.use('/api/requests', require('./routes/accept-request'));
 app.use('/api/matches', require('./routes/skill-matches'));
+// FR12 - Reject pending swap requests.
+app.use('/api/requests', require('./routes/reject-request'));
 app.use('/api/users/search', require('./routes/search-users'));
 app.get('/api/users/:userId/profile/image', requireLogin, async (req, res) => {
   const { userId } = req.params;
