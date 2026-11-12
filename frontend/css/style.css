@@ -1715,3 +1715,95 @@ body:has(a[href="login.html"]):has(form) {
     background-attachment: fixed;
     min-height: 100vh;
 }
+
+/* FR-10: Send Swap Request */
+
+.swap-request-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.swap-request-button {
+    background-color: #ffcc33;
+    color: #0c5449;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease,
+                transform 0.2s ease;
+}
+
+.swap-request-button:hover:not(:disabled) {
+    background-color: #f0bd20;
+    transform: translateY(-2px);
+}
+
+.swap-request-button:focus-visible {
+    outline: 3px solid #0c5449;
+    outline-offset: 3px;
+}
+
+.swap-request-button:disabled {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.swap-request-button[hidden] {
+    display: none;
+}
+
+.swap-request-status {
+    color: #0c5449;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.swap-request-status:empty {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .swap-request-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .swap-request-button {
+        width: 100%;
+    }
+}
+
+/* FR-10: Fix student profile header spacing */
+
+.profile-header {
+    gap: 30px;
+}
+
+.profile-header .profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-header #user-profile-image {
+    flex-shrink: 0;
+}
+
+.profile-header .swap-request-actions {
+    flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+    .profile-header .swap-request-actions {
+        width: 100%;
+    }
+}
