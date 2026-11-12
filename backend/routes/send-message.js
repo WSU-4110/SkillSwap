@@ -16,14 +16,15 @@ router.post('/', async (req, res) => {
   const { receiverId, content } = req.body || {};
 
   if (
+    !/^[1-9]\d*$/.test(String(receiverId)) ||
     !Number.isSafeInteger(Number(receiverId)) ||
-    Number(receiverId) <= 0 ||
+    Number(receiverId) > 2147483647 ||
     typeof content !== 'string' ||
     !content.trim() ||
     content.length > 2000
   ) {
     return res.status(400).json({
-      message: 'Enter a valid receiver and message (1–2000 characters).'
+      message: 'Enter a valid receiver and message (1â€“2000 characters).'
     });
   }
 
