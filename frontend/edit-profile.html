@@ -28,113 +28,137 @@
 
     <main class="edit-profile-container">
 
-        <header class="edit-page-heading">
-            <h1>Edit Your Profile</h1>
-            <p>Update your information and manage your skills.</p>
-        </header>
+        <!-- NFR-5: Loading Indicator -->
+        <div
+            id="edit-profile-loading"
+            class="dashboard-loading"
+            role="status"
+            aria-live="polite"
+        >
+            <span
+                class="loading-spinner"
+                aria-hidden="true"
+            ></span>
+            <span>Loading your profile...</span>
+        </div>
 
-        <form id="edit-profile-form">
+        <div id="edit-profile-content" hidden>
 
-            <section class="edit-personal-card">
+            <header class="edit-page-heading">
+                <h1>Edit Your Profile</h1>
+                <p>Update your information and manage your skills.</p>
+            </header>
 
-                <h2>Personal Information</h2>
+            <form id="edit-profile-form">
 
-                <div class="profile-fields">
+                <section class="edit-personal-card">
 
-                    <div>
-                        <label for="name">Full Name</label>
-                        <input
-                            type="text"
-                            id="name"
-                            placeholder="Enter your full name"
-                        >
+                    <h2>Personal Information</h2>
+
+                    <div class="profile-fields">
+
+                        <div>
+                            <label for="name">Full Name</label>
+                            <input
+                                type="text"
+                                id="name"
+                                placeholder="Enter your full name"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="major">Major</label>
+                            <input
+                                type="text"
+                                id="major"
+                                placeholder="Enter your major"
+                            >
+                        </div>
+
                     </div>
 
-                    <div>
-                        <label for="major">Major</label>
-                        <input
-                            type="text"
-                            id="major"
-                            placeholder="Enter your major"
-                        >
-                    </div>
+                    <label for="bio">Bio</label>
+                    <textarea
+                        id="bio"
+                        placeholder="Tell us about yourself"
+                    ></textarea>
+
+                    <label for="photo">Change Photo</label>
+                    <input
+                        type="file"
+                        id="photo"
+                        accept="image/*"
+                    >
+
+                </section>
+
+                <div class="edit-skills">
+
+                    <section class="edit-skills-box">
+
+                        <h2>Skills I Can Teach</h2>
+
+                        <div class="add-skill">
+                            <input
+                                type="text"
+                                id="teach-input"
+                                placeholder="Add a skill..."
+                            >
+                            <button type="button" id="add-teach">
+                                Add
+                            </button>
+                        </div>
+
+                        <ul id="teach-list"></ul>
+
+                    </section>
+
+                    <section class="edit-skills-box">
+
+                        <h2>Skills I Want to Learn</h2>
+
+                        <div class="add-skill">
+                            <input
+                                type="text"
+                                id="learn-input"
+                                placeholder="Add a skill..."
+                            >
+                            <button type="button" id="add-learn">
+                                Add
+                            </button>
+                        </div>
+
+                        <ul id="learn-list"></ul>
+
+                    </section>
 
                 </div>
 
-                <label for="bio">Bio</label>
-                <textarea
-                    id="bio"
-                    placeholder="Tell us about yourself"
-                ></textarea>
+                <p
+                    id="profile-message"
+                    role="status"
+                    aria-live="polite"
+                ></p>
 
-                <label for="photo">Change Photo</label>
-                <input
-                    type="file"
-                    id="photo"
-                    accept="image/*"
-                >
+                <div class="profile-buttons">
+                    <a href="profile.html" class="cancel-button">
+                        Cancel
+                    </a>
 
-            </section>
+                    <button type="submit" class="save-button">
+                        Save Changes
+                    </button>
+                </div>
 
-            <div class="edit-skills">
+            </form>
 
-                <section class="edit-skills-box">
+        </div>
 
-                    <h2>Skills I Can Teach</h2>
-
-                    <div class="add-skill">
-                        <input
-                            type="text"
-                            id="teach-input"
-                            placeholder="Add a skill..."
-                        >
-                        <button type="button" id="add-teach">
-                            Add
-                        </button>
-                    </div>
-
-                    <ul id="teach-list"></ul>
-
-                </section>
-
-                <section class="edit-skills-box">
-
-                    <h2>Skills I Want to Learn</h2>
-
-                    <div class="add-skill">
-                        <input
-                            type="text"
-                            id="learn-input"
-                            placeholder="Add a skill..."
-                        >
-                        <button type="button" id="add-learn">
-                            Add
-                        </button>
-                    </div>
-
-                    <ul id="learn-list"></ul>
-
-                </section>
-
-            </div>
-
-            <p
-                id="profile-message"
-                role="status"
-                aria-live="polite"
-            ></p>
-
-            <div class="profile-buttons">
-                <a href="profile.html" class="cancel-button">
-                    Cancel
-                </a>
-
-                <button type="submit" class="save-button">
-                    Save Changes
-                </button>
-            </div>
-
-        </form>
+        <p
+            id="edit-profile-loading-error"
+            role="alert"
+            hidden
+        ></p>
 
     </main>
 

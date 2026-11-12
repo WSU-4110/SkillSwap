@@ -35,9 +35,20 @@
         <section class="profile-bio">
             <h1>Messages</h1>
 
-            <p id="conversation-name">
-                Loading conversation...
-            </p>
+            <div
+                id="messages-loading"
+                class="dashboard-loading"
+                role="status"
+                aria-live="polite"
+            >
+                <span
+                    class="loading-spinner"
+                    aria-hidden="true"
+                ></span>
+                <span>Loading conversation...</span>
+            </div>
+
+            <p id="conversation-name"></p>
 
             <p
                 id="conversation-status"
@@ -90,7 +101,6 @@
     <script src="js/messages.js"></script>
 
     <script>
-        // Log out using the existing backend session.
         document.getElementById('logout-btn')
             .addEventListener('click', async () => {
 

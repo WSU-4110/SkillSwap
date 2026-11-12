@@ -1715,3 +1715,46 @@ body:has(a[href="login.html"]):has(form) {
     background-attachment: fixed;
     min-height: 100vh;
 }
+
+/* NFR-5: Dashboard Loading Indicator */
+
+.dashboard-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 45px 20px;
+    color: #0C5449;
+    font-weight: 600;
+}
+
+.dashboard-loading[hidden] {
+    display: none;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #D5E9DE;
+    border-top-color: #0C5449;
+    border-radius: 50%;
+    animation: dashboard-spin 0.8s linear infinite;
+}
+
+@keyframes dashboard-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading-spinner {
+        animation: none;
+    }
+}
+/* NFR-5: Hide content while loading */
+#edit-profile-content[hidden],
+#profile-content[hidden],
+.dashboard-loading[hidden] {
+    display: none !important;
+}

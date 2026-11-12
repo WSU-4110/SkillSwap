@@ -28,60 +28,83 @@
 
     <main class="profile-page">
 
-        <section class="profile-header">
+        <!-- NFR-5: Profile Loading Indicator -->
+        <div
+            id="profile-loading"
+            class="dashboard-loading"
+            role="status"
+            aria-live="polite"
+        >
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Loading your profile...</span>
+        </div>
 
-            <div class="profile-cover"></div>
+        <!-- Profile Content -->
+        <div id="profile-content" hidden>
 
-            <div class="profile-header-content">
+            <section class="profile-header">
 
-                <div class="profile-avatar">
-                    <img
-                        id="profile-image"
-                        alt="Profile picture"
-                        hidden
-                    >
+                <div class="profile-cover"></div>
+
+                <div class="profile-header-content">
+
+                    <div class="profile-avatar">
+                        <img
+                            id="profile-image"
+                            alt="Profile picture"
+                            hidden
+                        >
+                    </div>
+
+                    <div class="profile-info">
+                        <h1 id="profile-name">Student Name</h1>
+                        <p>Wayne State University</p>
+                        <p id="profile-major">Major</p>
+                    </div>
+
+                    <a href="edit-profile.html" class="edit-button">
+                        Edit Profile
+                    </a>
+
                 </div>
 
-                <div class="profile-info">
-                    <h1 id="profile-name">Student Name</h1>
-                    <p>Wayne State University</p>
-                    <p id="profile-major">Major</p>
-                </div>
+            </section>
 
-                <a href="edit-profile.html" class="edit-button">
-                    Edit Profile
-                </a>
+            <section class="profile-bio">
+                <h2>About Me</h2>
+                <p id="profile-bio">
+                    Tell others a little about yourself.
+                </p>
+            </section>
+
+            <div class="profile-skills">
+
+                <section class="skills-box">
+                    <h2>Skills I Can Teach</h2>
+
+                    <ul id="teach-skills">
+                        <li>No skills added yet.</li>
+                    </ul>
+                </section>
+
+                <section class="skills-box">
+                    <h2>Skills I Want to Learn</h2>
+
+                    <ul id="learn-skills">
+                        <li>No skills added yet.</li>
+                    </ul>
+                </section>
 
             </div>
 
-        </section>
-
-        <section class="profile-bio">
-            <h2>About Me</h2>
-            <p id="profile-bio">
-                Tell others a little about yourself.
-            </p>
-        </section>
-
-        <div class="profile-skills">
-
-            <section class="skills-box">
-                <h2>Skills I Can Teach</h2>
-
-                <ul id="teach-skills">
-                    <li>No skills added yet.</li>
-                </ul>
-            </section>
-
-            <section class="skills-box">
-                <h2>Skills I Want to Learn</h2>
-
-                <ul id="learn-skills">
-                    <li>No skills added yet.</li>
-                </ul>
-            </section>
-
         </div>
+
+        <!-- Loading Error Message -->
+        <p
+            id="profile-loading-error"
+            role="alert"
+            hidden
+        ></p>
 
     </main>
 

@@ -64,13 +64,25 @@
         >
             <h2 id="suggested-heading">Suggested Students</h2>
 
+            <!-- NFR-5: Suggestions Loading Indicator -->
+            <div
+                id="suggestions-loading"
+                class="dashboard-loading"
+                role="status"
+                aria-live="polite"
+            >
+                <span
+                    class="loading-spinner"
+                    aria-hidden="true"
+                ></span>
+                <span>Loading suggestions...</span>
+            </div>
+
             <p
                 id="suggestions-status"
                 role="status"
                 aria-live="polite"
-            >
-                Loading suggestions...
-            </p>
+            ></p>
 
             <div id="suggested-users"></div>
         </section>
@@ -81,13 +93,25 @@
         >
             <h2 id="all-heading">All Students</h2>
 
+            <!-- NFR-5: Students Loading Indicator -->
+            <div
+                id="browse-loading"
+                class="dashboard-loading"
+                role="status"
+                aria-live="polite"
+            >
+                <span
+                    class="loading-spinner"
+                    aria-hidden="true"
+                ></span>
+                <span>Loading students...</span>
+            </div>
+
             <p
                 id="browse-status"
                 role="status"
                 aria-live="polite"
-            >
-                Loading students...
-            </p>
+            ></p>
 
             <div id="all-users"></div>
         </section>
