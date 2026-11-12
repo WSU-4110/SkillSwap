@@ -639,6 +639,8 @@ app.get('/api/users', requireLogin, async (req, res) => {
   }
 });
 const port = Number(process.env.PORT) || 3000;
+// FR11 - Accept pending swap requests.
+app.use('/api/requests', require('./routes/accept-request'));
 app.use('/api/matches', require('./routes/skill-matches'));
 app.use('/api/users/search', require('./routes/search-users'));
 app.get('/api/users/:userId/profile/image', requireLogin, async (req, res) => {
