@@ -80,3 +80,34 @@ test('handles lookup and insert failures without exposing database errors', asyn
     assert.equal(response.data.message, 'Could not send the request. Please try again.');
   }
 });
+
+test('reports duplicate pending requests without claiming success', async () => {
+  let calls = 0;
+  const send = loadRoute(async () => {
+    if (++calls === 1) return [[{ id: 2 }]];
+    const error = new Error('Private duplicate key details');
+    error.code = 'ER_DUP_ENTRY';
+    throw error;
+  });
+  const res = await send({ userId: 1 }, { recipientId: 2 });
+  assert.equal(res.code, 409);
+  assert.equal(res.data.message, 'A pending request already exists between you and this student.');
+  assert.equal(res.data.request, undefined);
+});
+
+test('duplicate errors from simultaneous sends produce one success and one conflict', async () => {
+  let inserted = false;
+  const send = loadRoute(async (sql) => {
+    if (sql.startsWith('SELECT')) return [[{ id: 2 }]];
+    if (inserted) {
+      const error = new Error('duplicate'); error.code = 'ER_DUP_ENTRY'; throw error;
+    }
+    inserted = true;
+    return [{ insertId: 8 }];
+  });
+  const responses = await Promise.all([
+    send({ userId: 1 }, { recipientId: 2 }),
+    send({ userId: 1 }, { recipientId: 2 })
+  ]);
+  assert.deepEqual(responses.map(res => res.code).sort(), [201, 409]);
+});
