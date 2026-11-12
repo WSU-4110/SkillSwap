@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swap Requests | SkillSwap</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dashboard-page">
+
+    <!-- Navigation -->
+    <nav>
+        <a href="home.html" class="logo">
+            <img src="images/logo.png" alt="SkillSwap logo">
+            <span>SkillSwap</span>
+        </a>
+
+        <div class="nav-buttons">
+            <a href="home.html">Home</a>
+            <a href="browse.html">Browse</a>
+            <a href="profile.html">My Profile</a>
+            <a href="requests.html" aria-current="page">Requests</a>
+            <a href="messages.html">Messages</a>
+        </div>
+    </nav>
+
+    <main class="dashboard-main">
+
+        <section class="dashboard-welcome">
+            <span class="dashboard-label">
+                SKILLSWAP REQUESTS
+            </span>
+
+            <h1>Swap Requests</h1>
+
+            <p>
+                View requests from other students
+                and accept the ones you're interested in.
+            </p>
+        </section>
+
+        <section class="dashboard-actions">
+            <div class="dashboard-section-heading">
+                <h2>Incoming Requests</h2>
+                <p>Students who want to swap skills with you.</p>
+            </div>
+
+            <div id="incoming-requests" class="requests-list">
+                <!-- Requests will be loaded here -->
+            </div>
+
+            <p id="requests-status"
+               role="status"
+               aria-live="polite">
+                Loading requests...
+            </p>
+
+            <button id="load-more-requests"
+                    type="button"
+                    hidden>
+                Load More
+            </button>
+        </section>
+
+    </main>
+
+    <script src="js/requests.js" defer></script>
+
+</body>
+</html>
