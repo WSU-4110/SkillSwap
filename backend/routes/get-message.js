@@ -33,7 +33,7 @@ router.get('/:userId', async (req, res) => {
   }
 
   try {
-    // Check whether the students have an accepted request
+    // Check whether the students have an accepted request.
     const [acceptedRequests] = await db.execute(
       `SELECT id FROM swap_requests
        WHERE status = 'accepted'
@@ -52,9 +52,19 @@ router.get('/:userId', async (req, res) => {
       });
     }
 
-    // Retrieve messages in both directions
+    // Mark incoming messages as read when the conversation is opened.
+    await db.execute(
+      `UPDATE messages
+       SET is_read = 1
+       WHERE sender_id = ?
+         AND receiver_id = ?
+         AND is_read = 0`,
+      [otherUserId, currentUserId]
+    );
+
+    // Retrieve messages in both directions.
     const [messages] = await db.execute(
-      `SELECT id, sender_id, receiver_id, content, created_at
+      `SELECT id, sender_id, receiver_id, content, created_at, is_read
        FROM messages
        WHERE
          (sender_id = ? AND receiver_id = ?)
@@ -67,6 +77,7 @@ router.get('/:userId', async (req, res) => {
     return res.status(200).json({
       messages
     });
+
   } catch (error) {
     console.error('Get messages failed:', error.code);
 

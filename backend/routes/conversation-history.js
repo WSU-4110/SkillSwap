@@ -4,7 +4,7 @@ const db = require('../db');
 
 const router = express.Router();
 
-// FR09 - Get conversation history
+// FR09 - Get conversation history and unread counts.
 router.get('/', async (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({
@@ -15,21 +15,32 @@ router.get('/', async (req, res) => {
   const currentUserId = Number(req.session.userId);
 
   try {
-    // Find students with whom the user has exchanged messages
     const [conversations] = await db.execute(
       `SELECT
          u.id AS student_id,
          u.name AS student_name,
          m.content AS last_message,
          m.created_at AS last_message_time,
-         m.sender_id AS last_sender_id
+         m.sender_id AS last_sender_id,
+
+         (
+           SELECT COUNT(*)
+           FROM messages unread
+           WHERE unread.sender_id = u.id
+             AND unread.receiver_id = ?
+             AND unread.is_read = 0
+         ) AS unread_count
+
        FROM messages m
+
        JOIN users u
          ON u.id = CASE
            WHEN m.sender_id = ? THEN m.receiver_id
            ELSE m.sender_id
          END
+
        WHERE (m.sender_id = ? OR m.receiver_id = ?)
+
          AND m.id = (
            SELECT m2.id
            FROM messages m2
@@ -40,6 +51,7 @@ router.get('/', async (req, res) => {
            ORDER BY m2.created_at DESC, m2.id DESC
            LIMIT 1
          )
+
          AND EXISTS (
            SELECT 1
            FROM swap_requests sr
@@ -50,8 +62,11 @@ router.get('/', async (req, res) => {
                (sr.sender_id = u.id AND sr.recipient_id = ?)
              )
          )
+
        ORDER BY m.created_at DESC, m.id DESC`,
+
       [
+        currentUserId,
         currentUserId,
         currentUserId,
         currentUserId,
@@ -62,7 +77,17 @@ router.get('/', async (req, res) => {
       ]
     );
 
-    return res.status(200).json({ conversations });
+    return res.status(200).json({
+      conversations: conversations.map(row => ({
+        studentId: row.student_id,
+        studentName: row.student_name,
+        lastMessage: row.last_message,
+        lastMessageTime: row.last_message_time,
+        lastSenderId: row.last_sender_id,
+        unreadCount: Number(row.unread_count)
+      }))
+    });
+
   } catch (error) {
     console.error('Conversation history failed:', error.code);
 

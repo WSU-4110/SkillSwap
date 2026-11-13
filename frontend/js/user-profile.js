@@ -97,8 +97,40 @@ image.src =
 document.title = user.name + " - SkillSwap";
         status.textContent = "";
         content.hidden = false;
+
+        // Allow messaging this student.
+
+
         
 requestButton.hidden = false;
+
+        // Check whether these students are connected.
+        const requestsResponse = await fetch("http://localhost:3000/api/requests",
+            { credentials: "include" }
+        );
+
+        if (!requestsResponse.ok) { throw new Error("Could not check connections.");
+        }
+
+        const requestsData = await requestsResponse.json();
+        const related = (requestsData.requests || []).filter(r =>
+            Number(r.senderId) === Number(userId) ||
+            Number(r.recipientId) === Number(userId)
+        );
+
+        const accepted = related.some(r => r.status === "accepted");
+        const pending = related.some(r => r.status === "pending");
+
+        if (accepted) {
+            requestButton.textContent = "Connected";
+            requestButton.disabled = true;
+            messageButton.href =
+                "messages.html?userId=" + encodeURIComponent(userId);
+            messageButton.hidden = false;
+        } else if (pending) {
+            requestButton.textContent = "Request Sent";
+            requestButton.disabled = true;
+        }
 
 requestButton.onclick = async function () {
     requestButton.disabled = true;

@@ -7,6 +7,371 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - SkillSwap</title>
     <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .messages-nav-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .nav-unread-badge,
+        .chat-unread-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 21px;
+            height: 21px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #e5242b;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .nav-unread-badge {
+            position: absolute;
+            top: -12px;
+            right: -18px;
+            border: 2px solid white;
+            z-index: 5;
+        }
+
+        .nav-unread-badge[hidden],
+        .chat-unread-badge[hidden] {
+            display: none !important;
+        }
+
+        .messages-page {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .messages-heading {
+            margin: 26px 0;
+        }
+
+        .messages-heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .messages-heading p {
+            color: #64766e;
+        }
+
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 330px minmax(0, 1fr);
+            height: min(690px, 75vh);
+            min-height: 450px;
+            border: 1px solid #d6e5dc;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #fffdf7;
+        }
+
+        .chat-sidebar {
+            min-width: 0;
+            background: #f0f8f3;
+            border-right: 1px solid #d6e5dc;
+            overflow-y: auto;
+        }
+
+        .chat-sidebar-heading {
+            padding: 22px;
+            border-bottom: 1px solid #d6e5dc;
+        }
+
+        .chat-sidebar-heading h2 {
+            margin: 0 0 5px;
+        }
+
+        .chat-sidebar-heading p {
+            margin: 0;
+            color: #64766e;
+        }
+
+        .conversation-list {
+            padding: 8px;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 12px;
+            border-radius: 12px;
+            color: #0c554a;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+
+        .conversation-item:hover,
+        .conversation-item.active-conversation {
+            background: #dcefe4;
+        }
+
+        .conversation-item.active-conversation {
+            border-left-color: #0c554a;
+        }
+
+        .chat-avatar {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #0c554a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            overflow: hidden;
+        }
+
+        .chat-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .conversation-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-topline {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .conversation-topline strong {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-topline small {
+            flex-shrink: 0;
+            font-size: 11px;
+            color: #71827b;
+        }
+
+        .conversation-preview {
+            margin: 5px 0 0;
+            font-size: 13px;
+            color: #61756c;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 22px;
+            min-height: 82px;
+            border-bottom: 1px solid #d6e5dc;
+            background: #f0f8f3;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .chat-header p {
+            margin: 4px 0 0;
+            color: #71827b;
+            font-size: 13px;
+        }
+
+        .message-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #fffdf7;
+        }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
+
+        .message-row.mine {
+            justify-content: flex-end;
+        }
+
+        .message-row.theirs {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 65%;
+            width: fit-content;
+            padding: 10px 14px;
+            border-radius: 16px;
+            background: #e1f0e7;
+            color: #194c42;
+            overflow-wrap: anywhere;
+        }
+
+        .message-row.mine .message-bubble {
+            background: #0c554a;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-row.theirs .message-bubble {
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-bubble p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+        }
+
+        .message-bubble small {
+            display: block;
+            margin-top: 5px;
+            font-size: 10px;
+            text-align: right;
+            opacity: 0.75;
+        }
+
+        .chat-composer {
+            padding: 15px 20px;
+            border-top: 1px solid #d6e5dc;
+            background: white;
+        }
+
+        .chat-composer form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-composer textarea {
+            flex: 1;
+            min-width: 0;
+            min-height: 48px;
+            max-height: 110px;
+            resize: vertical;
+            padding: 12px;
+            border: 1px solid #cdded4;
+            border-radius: 12px;
+            font: inherit;
+        }
+
+        .chat-composer button {
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 12px;
+            background: #0c554a;
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .chat-composer button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #message-status {
+            margin: 6px 0 0;
+            font-size: 12px;
+        }
+
+        .chat-placeholder {
+            margin: auto;
+            padding: 25px;
+            text-align: center;
+            color: #64766e;
+        }
+
+        @media (max-width: 700px) {
+            .messages-page {
+                padding: 20px 12px;
+            }
+
+            .chat-layout {
+                grid-template-columns: 130px minmax(0, 1fr);
+                min-height: 480px;
+            }
+
+            .conversation-item {
+                padding: 10px 5px;
+                gap: 6px;
+            }
+
+            .conversation-item .chat-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .conversation-topline small {
+                display: none;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            .chat-composer form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+<style id="global-unread-badge-style">
+.nav-buttons a[href="messages.html"] {
+    position: relative;
+}
+.global-unread-badge {
+    position: absolute;
+    top: -13px;
+    right: -17px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e5242b;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-sizing: border-box;
+}
+.global-unread-badge[hidden] {
+    display: none !important;
+}
+</style>
 </head>
 
 <body class="modern-messages-page">
@@ -21,113 +386,135 @@
             <a href="home.html">Home</a>
             <a href="browse.html">Browse</a>
             <a href="profile.html">My Profile</a>
-            <a href="messages.html" aria-current="page">Messages</a>
+            <a href="requests.html">Requests</a>
+
+            <a href="messages.html"
+               id="messages-nav-link"
+               class="messages-nav-link"
+               aria-current="page">
+                Messages
+                <span id="nav-message-count"
+                      class="nav-unread-badge"
+                      hidden></span>
+            </a>
+
             <button type="button" id="logout-btn">Log Out</button>
         </div>
     </nav>
 
-    <main class="profile-page">
+    <main class="messages-page">
 
         <a href="browse.html" class="back-browse-button">
-            ← Back to Browse
+            &larr; Back to Browse
         </a>
 
-        <section class="profile-bio">
+        <div class="messages-heading">
             <h1>Messages</h1>
+            <p>Connect and communicate with your SkillSwap students.</p>
+        </div>
 
-            <div
-                id="messages-loading"
-                class="dashboard-loading"
-                role="status"
-                aria-live="polite"
-            >
-                <span
-                    class="loading-spinner"
-                    aria-hidden="true"
-                ></span>
-                <span>Loading conversation...</span>
-            </div>
+        <div id="messages-loading"
+             class="dashboard-loading"
+             role="status">
+            Loading conversations...
+        </div>
 
-            <p id="conversation-name"></p>
+        <p id="conversation-status"
+           role="status"
+           aria-live="polite"></p>
 
-            <p
-                id="conversation-status"
-                role="status"
-                aria-live="polite"
-            ></p>
-        </section>
+        <div class="chat-layout">
 
-        <section
-            id="conversation-content"
-            class="profile-bio"
-            hidden
-        >
+            <aside class="chat-sidebar">
+                <div class="chat-sidebar-heading">
+                    <h2>Chats</h2>
+                    <p id="conversation-count">Loading...</p>
+                </div>
 
-            <h2>Conversation</h2>
+                <div id="conversation-list"
+                     class="conversation-list">
+                </div>
+            </aside>
 
-            <div
-                id="message-list"
-                class="message-list"
-            ></div>
+            <section class="chat-main">
 
-            <form id="message-form">
+                <div id="chat-placeholder"
+                     class="chat-placeholder">
+                    Select a conversation to start messaging.
+                </div>
 
-                <label for="message-input">
-                    Your Message
-                </label>
+                <div id="conversation-content"
+                     hidden
+                     style="height:100%; min-height:0; flex-direction:column;">
 
-                <textarea
-                    id="message-input"
-                    placeholder="Type your message..."
-                    required
-                ></textarea>
+                    <header class="chat-header">
+                        <div id="selected-avatar"
+                             class="chat-avatar"></div>
 
-                <button type="submit" class="save-button">
-                    Send Message
-                </button>
+                        <div>
+                            <h2 id="conversation-name"></h2>
+                            <p>SkillSwap Student</p>
+                        </div>
+                    </header>
 
-            </form>
+                    <div id="message-list"
+                         class="message-list"
+                         aria-live="polite"></div>
 
-            <p
-                id="message-status"
-                role="status"
-                aria-live="polite"
-            ></p>
+                    <div class="chat-composer">
+                        <form id="message-form">
+                            <textarea id="message-input"
+                                      placeholder="Type a message..."
+                                      maxlength="2000"
+                                      required></textarea>
 
-        </section>
+                            <button type="submit">
+                                Send
+                            </button>
+                        </form>
+
+                        <p id="message-status"
+                           role="status"
+                           aria-live="polite"></p>
+                    </div>
+
+                </div>
+
+            </section>
+        </div>
 
     </main>
 
     <script src="js/messages.js"></script>
 
     <script>
-        document.getElementById('logout-btn')
-            .addEventListener('click', async () => {
-
-                const button = document.getElementById('logout-btn');
+        document.getElementById("logout-btn")
+            .addEventListener("click", async function () {
+                const button = this;
                 button.disabled = true;
 
                 try {
                     const response = await fetch(
-                        'http://localhost:3000/api/logout',
+                        "http://localhost:3000/api/logout",
                         {
-                            method: 'POST',
-                            credentials: 'include'
+                            method: "POST",
+                            credentials: "include"
                         }
                     );
 
                     if (!response.ok) {
-                        throw new Error('Logout failed');
+                        throw new Error("Logout failed.");
                     }
 
-                    window.location.replace('login.html');
+                    window.location.replace("login.html");
 
                 } catch (error) {
-                    alert('Could not log out. Please try again.');
+                    alert("Could not log out. Please try again.");
                     button.disabled = false;
                 }
             });
     </script>
 
+    <script src="js/message-notifications.js"></script>
 </body>
 </html>

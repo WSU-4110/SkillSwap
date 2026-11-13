@@ -7,6 +7,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - SkillSwap</title>
     <link rel="stylesheet" href="css/style.css">
+<style id="global-unread-badge-style">
+.nav-buttons a[href="messages.html"] {
+    position: relative;
+}
+.global-unread-badge {
+    position: absolute;
+    top: -13px;
+    right: -17px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e5242b;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-sizing: border-box;
+}
+.global-unread-badge[hidden] {
+    display: none !important;
+}
+</style>
 </head>
 
 <body class="modern-profile-page">
@@ -21,7 +47,8 @@
             <a href="home.html">Home</a>
             <a href="browse.html">Browse</a>
             <a href="profile.html" aria-current="page">My Profile</a>
-            <a href="messages.html">Messages</a>
+            <a href="requests.html">Requests</a>
+            <a href="messages.html">Messages<span id="global-message-badge" class="global-unread-badge" hidden></span></a>
             <button type="button" id="logout-btn">Log Out</button>
         </div>
     </nav>
@@ -139,5 +166,6 @@
             });
     </script>
 
+    <script src="js/message-notifications.js"></script>
 </body>
 </html>
