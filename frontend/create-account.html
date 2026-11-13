@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +20,9 @@
     <div class="signup-container">
 
         <h1>Create Account</h1>
-        <p class="subtitle">Join SkillSwap and start exchanging skills.</p>
+        <p class="subtitle">
+            Join SkillSwap and start exchanging skills.
+        </p>
 
         <form id="create-account-form">
 
@@ -44,6 +47,7 @@
                 type="password"
                 id="password"
                 placeholder="Create a password"
+                minlength="8"
                 required
             >
 
@@ -52,12 +56,15 @@
                 type="password"
                 id="confirm-password"
                 placeholder="Confirm your password"
+                minlength="8"
                 required
             >
 
-            <button type="submit">Create Account</button>
+            <button type="submit" id="signup-button">
+                Create Account
+            </button>
 
-            <p id="message"></p>
+            <p id="message" role="status"></p>
         </form>
 
         <p class="login-text">
@@ -68,31 +75,56 @@
     </div>
 
     <script>
+        // =========================
+        // FR1 - CREATE ACCOUNT
+        // FR19 - PROFILE ONBOARDING
+        // =========================
+
         const form = document.getElementById('create-account-form');
         const message = document.getElementById('message');
+        const signupButton = document.getElementById('signup-button');
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword =
                 document.getElementById('confirm-password').value;
 
+            message.textContent = '';
+
+            // Check that passwords match.
             if (password !== confirmPassword) {
                 message.textContent = 'Passwords do not match.';
                 return;
             }
 
+            // Validate password length.
+            if (password.length < 8) {
+                message.textContent =
+                    'Password must be at least 8 characters.';
+                return;
+            }
+
+            signupButton.disabled = true;
+            signupButton.textContent = 'Creating Account...';
+
             try {
+                // Register the user and create their login session.
                 const response = await fetch(
                     'http://localhost:3000/api/register',
                     {
                         method: 'POST',
+
+                        // FR19: Keep the login session cookie.
+                        credentials: 'include',
+
                         headers: {
                             'Content-Type': 'application/json'
                         },
+
                         body: JSON.stringify({
                             name: name,
                             email: email,
@@ -103,19 +135,32 @@
 
                 const data = await response.json();
 
-                message.textContent = data.message;
-
                 if (response.ok) {
+                    message.textContent =
+                        'Account created! Redirecting to your profile...';
+
                     form.reset();
 
-                    // Send the new user to login after
-                    // successfully creating an account.
-                    window.location.href = 'login.html';
+                    // FR19: Send new users directly to profile onboarding.
+                    window.location.href =
+                        'edit-profile.html?onboarding=1';
+
+                    return;
                 }
 
-            } catch (error) {
+                // Display registration errors.
                 message.textContent =
-                    'Could not connect to the server.';
+                    data.message || 'Could not create account.';
+
+            } catch (error) {
+                console.error('Registration error:', error);
+
+                message.textContent =
+                    'Could not connect to the server. Please try again.';
+
+            } finally {
+                signupButton.disabled = false;
+                signupButton.textContent = 'Create Account';
             }
         });
     </script>
