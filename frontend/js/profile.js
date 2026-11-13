@@ -203,6 +203,7 @@ async function loadProfilePage() {
 
 // =========================
 // EDIT PROFILE PAGE
+// FR19 - NEW USER ONBOARDING
 // =========================
 
 async function setupEditProfilePage() {
@@ -210,6 +211,10 @@ async function setupEditProfilePage() {
         document.getElementById("edit-profile-form");
 
     if (!editForm) return;
+
+    // FR19: Determine whether this is a new user's onboarding.
+    const params = new URLSearchParams(window.location.search);
+    const isOnboarding = params.get("onboarding") === "1";
 
     const editLoading =
         document.getElementById("edit-profile-loading");
@@ -225,8 +230,50 @@ async function setupEditProfilePage() {
     const bioInput = document.getElementById("bio");
     const message = document.getElementById("profile-message");
 
+    const saveButton = editForm.querySelector(".save-button");
+
     let teachSkills = [];
     let learnSkills = [];
+    let skillsLoaded = false;
+
+    // =========================
+    // FR19 - ONBOARDING DISPLAY
+    // =========================
+
+    if (isOnboarding) {
+        const heading = document.querySelector(
+            ".edit-page-heading h1"
+        );
+
+        const subtitle = document.querySelector(
+            ".edit-page-heading p"
+        );
+
+        const cancelButton = editForm.querySelector(
+            ".cancel-button"
+        );
+
+        if (heading) {
+            heading.textContent = "Complete Your Profile";
+        }
+
+        if (subtitle) {
+            subtitle.textContent =
+                "Welcome to SkillSwap! Tell us about yourself " +
+                "and add at least one skill you can teach " +
+                "and one skill you want to learn.";
+        }
+
+        if (saveButton) {
+            saveButton.textContent = "Save & Continue";
+        }
+
+        // Hide Cancel during onboarding.
+        if (cancelButton) {
+            cancelButton.hidden = true;
+            cancelButton.style.display = "none";
+        }
+    }
 
     if (editLoading) editLoading.hidden = false;
     if (editContent) editContent.hidden = true;
@@ -290,40 +337,44 @@ async function setupEditProfilePage() {
         bioInput.value = profile.bio || "";
 
         // Load teaching skills
-        try {
-            const teachResponse = await fetchWithTimeout(
-                `${API_URL}/api/skills/teach`,
-                { credentials: "include" }
-            );
+        const teachResponse = await fetchWithTimeout(
+            `${API_URL}/api/skills/teach`,
+            { credentials: "include" }
+        );
 
-            if (teachResponse.ok) {
-                const teachData = await teachResponse.json();
-
-                teachSkills = teachData.skills || [];
-
-                updateSkills("teach-list", teachSkills);
-            }
-        } catch (error) {
-            console.error("Teaching skills error:", error);
+        if (teachResponse.status === 401) {
+            window.location.href = "login.html";
+            return;
         }
+
+        if (!teachResponse.ok) {
+            throw new Error("Could not load teaching skills.");
+        }
+
+        const teachData = await teachResponse.json();
+        teachSkills = teachData.skills || [];
+        updateSkills("teach-list", teachSkills);
 
         // Load learning skills
-        try {
-            const learnResponse = await fetchWithTimeout(
-                `${API_URL}/api/skills/learn`,
-                { credentials: "include" }
-            );
+        const learnResponse = await fetchWithTimeout(
+            `${API_URL}/api/skills/learn`,
+            { credentials: "include" }
+        );
 
-            if (learnResponse.ok) {
-                const learnData = await learnResponse.json();
-
-                learnSkills = learnData.skills || [];
-
-                updateSkills("learn-list", learnSkills);
-            }
-        } catch (error) {
-            console.error("Learning skills error:", error);
+        if (learnResponse.status === 401) {
+            window.location.href = "login.html";
+            return;
         }
+
+        if (!learnResponse.ok) {
+            throw new Error("Could not load learning skills.");
+        }
+
+        const learnData = await learnResponse.json();
+        learnSkills = learnData.skills || [];
+        updateSkills("learn-list", learnSkills);
+
+        skillsLoaded = true;
 
         if (editContent) {
             editContent.hidden = false;
@@ -335,7 +386,7 @@ async function setupEditProfilePage() {
         if (editError) {
             editError.hidden = false;
             editError.textContent =
-                "Could not load your profile. Please try again.";
+                "Could not load your profile or skills. Please try again.";
         }
 
     } finally {
@@ -366,6 +417,8 @@ async function setupEditProfilePage() {
                     message.style.color = "red";
                     return;
                 }
+
+                addTeachButton.disabled = true;
 
                 try {
                     const response = await fetchWithTimeout(
@@ -404,6 +457,8 @@ async function setupEditProfilePage() {
                     message.textContent =
                         "Could not connect to the server.";
                     message.style.color = "red";
+                } finally {
+                    addTeachButton.disabled = false;
                 }
             }
         );
@@ -431,6 +486,8 @@ async function setupEditProfilePage() {
                     message.style.color = "red";
                     return;
                 }
+
+                addLearnButton.disabled = true;
 
                 try {
                     const response = await fetchWithTimeout(
@@ -469,6 +526,8 @@ async function setupEditProfilePage() {
                     message.textContent =
                         "Could not connect to the server.";
                     message.style.color = "red";
+                } finally {
+                    addLearnButton.disabled = false;
                 }
             }
         );
@@ -476,6 +535,7 @@ async function setupEditProfilePage() {
 
     // =========================
     // SAVE PROFILE
+    // FR19 - ONBOARDING VALIDATION
     // =========================
 
     editForm.addEventListener(
@@ -492,6 +552,38 @@ async function setupEditProfilePage() {
                     "Please enter your full name.";
                 message.style.color = "red";
                 return;
+            }
+
+            // FR19: Require both skill types for new users.
+            if (isOnboarding) {
+                if (!skillsLoaded) {
+                    message.textContent =
+                        "Please wait for your skills to load, " +
+                        "or refresh the page.";
+                    message.style.color = "red";
+                    return;
+                }
+
+                if (teachSkills.length < 1) {
+                    message.textContent =
+                        "Please add at least one skill " +
+                        "you can teach.";
+                    message.style.color = "red";
+                    return;
+                }
+
+                if (learnSkills.length < 1) {
+                    message.textContent =
+                        "Please add at least one skill " +
+                        "you want to learn.";
+                    message.style.color = "red";
+                    return;
+                }
+            }
+
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.textContent = "Saving...";
             }
 
             try {
@@ -538,7 +630,13 @@ async function setupEditProfilePage() {
                     "Profile saved successfully!";
                 message.style.color = "green";
 
-                window.location.href = "profile.html";
+                // FR19: New users go Home.
+                // Existing users return to their profile.
+                if (isOnboarding) {
+                    window.location.href = "home.html";
+                } else {
+                    window.location.href = "profile.html";
+                }
 
             } catch (error) {
                 console.error(error);
@@ -546,6 +644,13 @@ async function setupEditProfilePage() {
                 message.textContent =
                     "Could not connect to the server.";
                 message.style.color = "red";
+            } finally {
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.textContent = isOnboarding
+                        ? "Save & Continue"
+                        : "Save Changes";
+                }
             }
         }
     );
