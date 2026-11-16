@@ -23,20 +23,85 @@ async function fetchWithTimeout(url, options = {}) {
 }
 
 // =========================
-// DISPLAY SKILLS
+// EMPTY STATES AND SKILL LISTS
 // =========================
+
+function showSkillEmptyState(list, title, description) {
+    const item = document.createElement("li");
+    item.style.listStyle = "none";
+
+    const box = document.createElement("div");
+    box.className = "skills-box";
+    box.style.textAlign = "center";
+    box.style.padding = "25px 20px";
+    box.style.border = "1px solid #bfdbfe";
+    box.style.borderRadius = "12px";
+    box.style.backgroundColor = "#eff6ff";
+
+    const icon = document.createElement("div");
+    icon.textContent = "🪜";
+    icon.style.fontSize = "32px";
+    icon.style.marginBottom = "10px";
+
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    heading.style.color = "#1e40af";
+    heading.style.marginBottom = "8px";
+
+    const details = document.createElement("p");
+    details.textContent = description;
+    details.style.color = "#475569";
+    details.style.margin = "0";
+
+    box.append(icon, heading, details);
+    item.appendChild(box);
+    list.appendChild(item);
+}
+
+function showSkillLoadError(listId) {
+    const list = document.getElementById(listId);
+
+    if (!list) return;
+
+    list.replaceChildren();
+
+    const item = document.createElement("li");
+    item.textContent =
+        "Couldn't load skills right now. Please refresh and try again.";
+    item.style.color = "#b91c1c";
+    item.style.listStyle = "none";
+    item.style.padding = "12px";
+
+    list.appendChild(item);
+}
 
 function displaySkills(listId, skills) {
     const list = document.getElementById(listId);
 
     if (!list) return;
 
-    list.innerHTML = "";
+    list.replaceChildren();
 
-    if (!skills || skills.length === 0) {
-        const item = document.createElement("li");
-        item.textContent = "No skills added yet.";
-        list.appendChild(item);
+    if (!Array.isArray(skills)) {
+        showSkillLoadError(listId);
+        return;
+    }
+
+    if (skills.length === 0) {
+        const isTeaching = listId === "teach-skills";
+
+        showSkillEmptyState(
+            list,
+            isTeaching
+                ? "Your teaching journey starts here!"
+                : "Your learning journey starts here!",
+            isTeaching
+                ? "No teaching skills yet. Add a skill you can share " +
+                  "and start climbing toward your next SkillSwap!"
+                : "No learning skills yet. Pick something you'd love " +
+                  "to learn and take the first step!"
+        );
+
         return;
     }
 
@@ -142,20 +207,20 @@ async function loadProfilePage() {
                 { credentials: "include" }
             );
 
-            if (teachResponse.ok) {
-                const teachData = await teachResponse.json();
-
-                displaySkills(
-                    "teach-skills",
-                    teachData.skills || []
-                );
-            } else {
-                displaySkills("teach-skills", []);
+            if (!teachResponse.ok) {
+                throw new Error("Could not load teaching skills.");
             }
 
+            const teachData = await teachResponse.json();
+
+            displaySkills(
+                "teach-skills",
+                teachData.skills
+            );
+
         } catch (error) {
-            console.error(error);
-            displaySkills("teach-skills", []);
+            console.error("Teaching skills error:", error);
+            showSkillLoadError("teach-skills");
         }
 
         // Learning skills
@@ -165,20 +230,20 @@ async function loadProfilePage() {
                 { credentials: "include" }
             );
 
-            if (learnResponse.ok) {
-                const learnData = await learnResponse.json();
-
-                displaySkills(
-                    "learn-skills",
-                    learnData.skills || []
-                );
-            } else {
-                displaySkills("learn-skills", []);
+            if (!learnResponse.ok) {
+                throw new Error("Could not load learning skills.");
             }
 
+            const learnData = await learnResponse.json();
+
+            displaySkills(
+                "learn-skills",
+                learnData.skills
+            );
+
         } catch (error) {
-            console.error(error);
-            displaySkills("learn-skills", []);
+            console.error("Learning skills error:", error);
+            showSkillLoadError("learn-skills");
         }
 
         if (profileContent) {
@@ -241,9 +306,28 @@ async function setupEditProfilePage() {
 
         if (!list) return;
 
-        list.innerHTML = "";
+        list.replaceChildren();
 
-        if (!skills || skills.length === 0) {
+        if (!Array.isArray(skills)) {
+            showSkillLoadError(listId);
+            return;
+        }
+
+        if (skills.length === 0) {
+            const isTeaching = listId === "teach-list";
+
+            showSkillEmptyState(
+                list,
+                isTeaching
+                    ? "Ready to share a skill?"
+                    : "Ready to learn something new?",
+                isTeaching
+                    ? "Add your first teaching skill and start " +
+                      "climbing the SkillSwap ladder!"
+                    : "Add something you want to learn. " +
+                      "Every new skill starts with one step!"
+            );
+
             return;
         }
 
@@ -296,15 +380,22 @@ async function setupEditProfilePage() {
                 { credentials: "include" }
             );
 
-            if (teachResponse.ok) {
-                const teachData = await teachResponse.json();
-
-                teachSkills = teachData.skills || [];
-
-                updateSkills("teach-list", teachSkills);
+            if (!teachResponse.ok) {
+                throw new Error("Could not load teaching skills.");
             }
+
+            const teachData = await teachResponse.json();
+
+            if (!Array.isArray(teachData.skills)) {
+                throw new Error("Invalid teaching skills data.");
+            }
+
+            teachSkills = teachData.skills;
+            updateSkills("teach-list", teachSkills);
+
         } catch (error) {
             console.error("Teaching skills error:", error);
+            showSkillLoadError("teach-list");
         }
 
         // Load learning skills
@@ -314,15 +405,22 @@ async function setupEditProfilePage() {
                 { credentials: "include" }
             );
 
-            if (learnResponse.ok) {
-                const learnData = await learnResponse.json();
-
-                learnSkills = learnData.skills || [];
-
-                updateSkills("learn-list", learnSkills);
+            if (!learnResponse.ok) {
+                throw new Error("Could not load learning skills.");
             }
+
+            const learnData = await learnResponse.json();
+
+            if (!Array.isArray(learnData.skills)) {
+                throw new Error("Invalid learning skills data.");
+            }
+
+            learnSkills = learnData.skills;
+            updateSkills("learn-list", learnSkills);
+
         } catch (error) {
             console.error("Learning skills error:", error);
+            showSkillLoadError("learn-list");
         }
 
         if (editContent) {

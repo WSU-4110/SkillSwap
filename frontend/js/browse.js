@@ -34,6 +34,41 @@ function createStudentCard(user) {
 }
 
 // =========================
+// NFR-5 TASK 3: EMPTY STATES
+// =========================
+
+function showEmptyState(container, title, description) {
+    container.replaceChildren();
+
+    const emptyBox = document.createElement("div");
+    emptyBox.className = "skills-box";
+    emptyBox.style.textAlign = "center";
+    emptyBox.style.padding = "30px 20px";
+    emptyBox.style.marginTop = "15px";
+    emptyBox.style.border = "1px solid #bfdbfe";
+    emptyBox.style.borderRadius = "12px";
+    emptyBox.style.backgroundColor = "#eff6ff";
+
+    const icon = document.createElement("div");
+    icon.textContent = "🔎";
+    icon.style.fontSize = "32px";
+    icon.style.marginBottom = "10px";
+
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    heading.style.color = "#1e40af";
+    heading.style.marginBottom = "8px";
+
+    const paragraph = document.createElement("p");
+    paragraph.textContent = description;
+    paragraph.style.color = "#475569";
+    paragraph.style.margin = "0";
+
+    emptyBox.append(icon, heading, paragraph);
+    container.appendChild(emptyBox);
+}
+
+// =========================
 // NFR-5: LOAD STUDENTS
 // =========================
 
@@ -79,13 +114,33 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
             throw new Error("Unexpected response.");
         }
 
+        if (data.users.length === 0) {
+            if (listId === "suggested-users") {
+                showEmptyState(
+                    list,
+                    "No matches yet!",
+                    "Add more teaching and learning skills " +
+                    "to your profile to discover students " +
+                    "with similar interests."
+                );
+            } else {
+                showEmptyState(
+                    list,
+                    "No students available yet",
+                    "There are currently no other students " +
+                    "to browse. Check back later!"
+                );
+            }
+
+            status.textContent = "";
+            return;
+        }
+
         data.users.forEach(function(user) {
             list.appendChild(createStudentCard(user));
         });
 
-        status.textContent = data.users.length === 0
-            ? data.message || emptyMessage
-            : "";
+        status.textContent = "";
 
     } catch (error) {
         console.error("Student loading error:", error);
@@ -94,7 +149,7 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
             "Could not load students. Please try refreshing.";
 
     } finally {
-        // NFR-5: Always remove spinner when loading finishes.
+        // Always remove spinner when loading finishes.
         if (loadingIndicator) {
             loadingIndicator.hidden = true;
         }
@@ -166,15 +221,29 @@ searchForm.addEventListener("submit", async function(event) {
             throw new Error("Unexpected response.");
         }
 
+        if (data.users.length === 0) {
+            showEmptyState(
+                searchResults,
+                "No students found",
+                "We couldn't find anyone matching \"" +
+                skill +
+                "\". Try searching for a different skill!"
+            );
+
+            searchStatus.textContent = "";
+            return;
+        }
+
         data.users.forEach(function(user) {
             searchResults.appendChild(createStudentCard(user));
         });
 
-        searchStatus.textContent = data.users.length === 0
-            ? data.message || "No students found."
-            : data.users.length + " student(s) found.";
+        searchStatus.textContent =
+            data.users.length + " student(s) found.";
 
     } catch (error) {
+        console.error("Student search error:", error);
+
         searchStatus.textContent =
             "Could not search students. Please try again.";
     }
