@@ -2674,3 +2674,21 @@ body.modern-messages-page {
         flex: 1;
     }
 }
+
+
+/* FR12: Request Status Colors */
+
+.request-status.status-pending {
+    color: #b7791f;
+    font-weight: 600;
+}
+
+.request-status.status-accepted {
+    color: #16803c;
+    font-weight: 600;
+}
+
+.request-status.status-rejected {
+    color: #b42318;
+    font-weight: 600;
+}

@@ -45,7 +45,7 @@ async function loadRequests(offset = 0) {
             name.textContent = request.senderName;
 
             const status = document.createElement("p");
-            status.className = "request-status";
+            status.className = `request-status status-${request.status}`;
             status.textContent = `Status: ${request.status}`;
 
             card.append(name, status);
@@ -77,6 +77,7 @@ async function loadRequests(offset = 0) {
 
 
                         status.textContent = "Status: accepted";
+                        status.className = "request-status status-accepted";
                         acceptButton.textContent = "Accepted";
                         rejectButton.disabled = true;
                         statusMessage.textContent = "Swap request accepted!";
