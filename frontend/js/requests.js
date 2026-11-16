@@ -84,7 +84,21 @@ async function loadRequests(offset = 0) {
                     }
                 });
 
-                card.appendChild(acceptButton);
+                // FR12: Display Accept and Reject buttons together.
+                const requestActions = document.createElement("div");
+                requestActions.className = "request-actions";
+
+                const rejectButton = document.createElement("button");
+                rejectButton.type = "button";
+                rejectButton.className = "reject-request-button";
+                rejectButton.textContent = "Reject Request";
+
+                // The rejection API will be connected in FR12 PR #2.
+                rejectButton.disabled = true;
+                rejectButton.title = "Reject functionality coming soon";
+
+                requestActions.append(acceptButton, rejectButton);
+                card.appendChild(requestActions);
             }
 
             requestsContainer.appendChild(card);
