@@ -34,6 +34,39 @@ function createStudentCard(user) {
 }
 
 // =========================
+// NFR-5 TASK 4: RETRY BUTTON
+// =========================
+
+function showRetryButton(status, message, retryAction) {
+    status.replaceChildren();
+
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.color = "#b91c1c";
+    text.style.marginBottom = "10px";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "🔄 Try Again";
+    button.className = "swap-request-button";
+
+    button.style.backgroundColor = "#2563eb";
+    button.style.color = "white";
+    button.style.border = "none";
+    button.style.borderRadius = "8px";
+    button.style.padding = "10px 18px";
+    button.style.cursor = "pointer";
+
+    button.addEventListener("click", function() {
+        button.disabled = true;
+        button.textContent = "Retrying...";
+        retryAction();
+    });
+
+    status.append(text, button);
+}
+
+// =========================
 // NFR-5: LOAD STUDENTS
 // =========================
 
@@ -49,7 +82,7 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
     const loadingIndicator = document.getElementById(loadingId);
 
     list.replaceChildren();
-    status.textContent = "";
+    status.replaceChildren();
 
     if (loadingIndicator) {
         loadingIndicator.hidden = false;
@@ -90,11 +123,15 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
     } catch (error) {
         console.error("Student loading error:", error);
 
-        status.textContent =
-            "Could not load students. Please try refreshing.";
+        showRetryButton(
+            status,
+            "Could not load students. Please try again.",
+            function() {
+                loadStudents(endpoint, listId, statusId, emptyMessage);
+            }
+        );
 
     } finally {
-        // NFR-5: Always remove spinner when loading finishes.
         if (loadingIndicator) {
             loadingIndicator.hidden = true;
         }
@@ -128,16 +165,7 @@ const skillSearch = document.getElementById("skill-search");
 const searchResults = document.getElementById("search-results");
 const searchStatus = document.getElementById("search-status");
 
-searchForm.addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const skill = skillSearch.value.trim();
-
-    if (!skill) {
-        searchStatus.textContent = "Please enter a skill.";
-        return;
-    }
-
+async function searchStudents(skill) {
     searchResults.replaceChildren();
     searchStatus.textContent = "Searching students...";
 
@@ -175,9 +203,29 @@ searchForm.addEventListener("submit", async function(event) {
             : data.users.length + " student(s) found.";
 
     } catch (error) {
-        searchStatus.textContent =
-            "Could not search students. Please try again.";
+        console.error("Student search error:", error);
+
+        showRetryButton(
+            searchStatus,
+            "Could not search students. Please try again.",
+            function() {
+                searchStudents(skill);
+            }
+        );
     }
+}
+
+searchForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const skill = skillSearch.value.trim();
+
+    if (!skill) {
+        searchStatus.textContent = "Please enter a skill.";
+        return;
+    }
+
+    searchStudents(skill);
 });
 
 /* FR-17 Search Students */
