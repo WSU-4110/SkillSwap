@@ -7,32 +7,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home | SkillSwap</title>
     <link rel="stylesheet" href="css/style.css">
-<style id="global-unread-badge-style">
-.nav-buttons a[href="messages.html"] {
-    position: relative;
-}
-.global-unread-badge {
-    position: absolute;
-    top: -13px;
-    right: -17px;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: #e5242b;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid white;
-    box-sizing: border-box;
-}
-.global-unread-badge[hidden] {
-    display: none !important;
-}
-</style>
+
+    <style id="global-unread-badge-style">
+        .nav-buttons a[href="messages.html"] {
+            position: relative;
+        }
+
+        .global-unread-badge {
+            position: absolute;
+            top: -13px;
+            right: -17px;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #e5242b;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-sizing: border-box;
+        }
+
+        .global-unread-badge[hidden] {
+            display: none !important;
+        }
+
+        #status[hidden] {
+            display: none !important;
+        }
+
+        #status.error-message {
+            max-width: 650px;
+            margin: 20px auto;
+            padding: 14px 18px;
+            background: #fff1f2;
+            color: #991b1b;
+            border: 1px solid #fecdd3;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
 </head>
 
 <body class="dashboard-page">
@@ -49,7 +68,15 @@
             <a href="browse.html">Browse</a>
             <a href="profile.html">My Profile</a>
             <a href="requests.html">Requests</a>
-            <a href="messages.html">Messages<span id="global-message-badge" class="global-unread-badge" hidden></span></a>
+
+            <a href="messages.html">
+                Messages
+                <span
+                    id="global-message-badge"
+                    class="global-unread-badge"
+                    hidden
+                ></span>
+            </a>
 
             <button type="button" id="logout-btn" hidden>
                 Log Out
@@ -60,7 +87,11 @@
     <!-- Logged-in Dashboard -->
     <main class="dashboard-main">
 
-        <section class="dashboard-welcome" id="dashboard" hidden>
+        <section
+            class="dashboard-welcome"
+            id="dashboard"
+            hidden
+        >
 
             <span class="dashboard-label">
                 SKILLSWAP DASHBOARD
@@ -76,7 +107,11 @@
         </section>
 
         <!-- Quick Actions -->
-        <section class="dashboard-actions" id="dashboard-actions" hidden>
+        <section
+            class="dashboard-actions"
+            id="dashboard-actions"
+            hidden
+        >
 
             <div class="dashboard-section-heading">
                 <h2>Quick Actions</h2>
@@ -137,7 +172,6 @@
                 </a>
 
             </div>
-
         </section>
 
         <!-- NFR-5: Loading Indicator -->
@@ -151,101 +185,157 @@
             <span>Loading your dashboard...</span>
         </div>
 
-        <!-- Error / Status Message -->
-        <p id="status" role="status" aria-live="polite" hidden></p>
+        <!-- NFR-5: API Error Message -->
+        <p
+            id="status"
+            class="error-message"
+            role="alert"
+            hidden
+        ></p>
 
     </main>
 
     <script>
-        const API_URL = 'http://localhost:3000';
+        "use strict";
+
+        const API_URL = "http://localhost:3000";
 
         const logoutButton =
-            document.getElementById('logout-btn');
+            document.getElementById("logout-btn");
 
         const statusMessage =
-            document.getElementById('status');
+            document.getElementById("status");
 
         const loadingIndicator =
-            document.getElementById('loading-indicator');
+            document.getElementById("loading-indicator");
+
+        const dashboard =
+            document.getElementById("dashboard");
+
+        const dashboardActions =
+            document.getElementById("dashboard-actions");
+
+        // NFR-5: Display a clear error message.
+        function showError(message) {
+            statusMessage.textContent = message;
+            statusMessage.hidden = false;
+        }
+
+        // Hide previous errors.
+        function clearError() {
+            statusMessage.textContent = "";
+            statusMessage.hidden = true;
+        }
 
         // Check whether the user is logged in.
         async function checkLogin() {
+            clearError();
+            loadingIndicator.hidden = false;
+
             try {
                 const response = await fetch(
                     `${API_URL}/api/profile`,
                     {
-                        credentials: 'include',
-                        cache: 'no-store'
+                        credentials: "include",
+                        cache: "no-store"
                     }
                 );
 
                 if (response.status === 401) {
-                    window.location.replace('login.html');
+                    window.location.replace("login.html");
                     return;
                 }
 
                 if (!response.ok) {
-                    throw new Error('Could not load profile');
+                    throw new Error("Could not load profile");
                 }
 
                 const data = await response.json();
 
+                if (!data.profile || !data.profile.name) {
+                    throw new Error("Invalid profile data");
+                }
+
                 // Display the logged-in user's name.
-                document.getElementById('welcome').textContent =
+                document.getElementById("welcome").textContent =
                     `Welcome, ${data.profile.name}!`;
 
                 // Display the dashboard.
-                document.getElementById('dashboard').hidden = false;
-                document.getElementById('dashboard-actions').hidden = false;
+                dashboard.hidden = false;
+                dashboardActions.hidden = false;
 
                 // Display logout button.
                 logoutButton.hidden = false;
 
-                // Hide loading indicator.
-                loadingIndicator.hidden = true;
-                statusMessage.hidden = true;
+                clearError();
 
             } catch (error) {
-                // Hide spinner and display error.
-                loadingIndicator.hidden = true;
-                statusMessage.hidden = false;
+                console.error("Dashboard loading error:", error);
 
-                statusMessage.textContent =
-                    'Could not load your dashboard. Please try again.';
+                dashboard.hidden = true;
+                dashboardActions.hidden = true;
+
+                if (error instanceof TypeError) {
+                    showError(
+                        "Unable to connect to SkillSwap. " +
+                        "Please check your internet connection " +
+                        "or try again later."
+                    );
+                } else {
+                    showError(
+                        "Could not load your dashboard. " +
+                        "Please try again later."
+                    );
+                }
+
+            } finally {
+                loadingIndicator.hidden = true;
             }
         }
 
         // Log out and end the user's session.
-        logoutButton.addEventListener('click', async () => {
+        logoutButton.addEventListener("click", async () => {
             logoutButton.disabled = true;
+            clearError();
 
             try {
                 const response = await fetch(
                     `${API_URL}/api/logout`,
                     {
-                        method: 'POST',
-                        credentials: 'include'
+                        method: "POST",
+                        credentials: "include"
                     }
                 );
 
                 if (!response.ok) {
-                    throw new Error('Logout failed');
+                    throw new Error("Logout failed");
                 }
 
-                window.location.replace('login.html');
+                window.location.replace("login.html");
 
             } catch (error) {
-                statusMessage.hidden = false;
-                statusMessage.textContent =
-                    'Could not log out. Please try again.';
+                console.error("Logout error:", error);
+
+                if (error instanceof TypeError) {
+                    showError(
+                        "Unable to connect to the server. " +
+                        "Please check your connection and try again."
+                    );
+                } else {
+                    showError(
+                        "Could not log out. Please try again."
+                    );
+                }
 
                 logoutButton.disabled = false;
             }
         });
 
+        // Initialize dashboard.
         checkLogin();
     </script>
 
     <script src="js/message-notifications.js"></script>
+
 </body>
 </html>

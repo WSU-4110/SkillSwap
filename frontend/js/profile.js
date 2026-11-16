@@ -1,8 +1,10 @@
 
+"use strict";
+
 const API_URL = "http://localhost:3000";
 
 // =========================
-// API REQUEST WITH TIMEOUT
+// NFR-5: API REQUEST WITH TIMEOUT
 // =========================
 
 async function fetchWithTimeout(url, options = {}) {
@@ -14,6 +16,8 @@ async function fetchWithTimeout(url, options = {}) {
 
     try {
         return await fetch(url, {
+            credentials: "include",
+            cache: "no-store",
             ...options,
             signal: controller.signal
         });
@@ -23,17 +27,78 @@ async function fetchWithTimeout(url, options = {}) {
 }
 
 // =========================
+// NFR-5: ERROR MESSAGES
+// =========================
+
+function getProfileError(error, action) {
+    if (error.name === "AbortError") {
+        return "The request took too long. Please try again.";
+    }
+
+    if (error instanceof TypeError) {
+        return (
+            "Unable to connect to SkillSwap. " +
+            "Please check your connection and try again."
+        );
+    }
+
+    return (
+        "Could not " + action +
+        ". Please try again later."
+    );
+}
+
+function showProfileMessage(element, text, isError = false) {
+    if (!element) return;
+
+    element.textContent = text;
+    element.hidden = false;
+    element.style.color = isError ? "#991b1b" : "green";
+    element.setAttribute("role", isError ? "alert" : "status");
+}
+
+function showListError(listId, text) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+
+    list.replaceChildren();
+
+    const item = document.createElement("li");
+    item.textContent = text;
+    item.style.color = "#991b1b";
+    item.setAttribute("role", "alert");
+
+    list.appendChild(item);
+}
+
+async function readApiResponse(response, action) {
+    if (response.status === 401) {
+        window.location.replace("login.html");
+        throw new Error("Please log in again.");
+    }
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || "Could not " + action + "."
+        );
+    }
+
+    return data;
+}
+
+// =========================
 // DISPLAY SKILLS
 // =========================
 
 function displaySkills(listId, skills) {
     const list = document.getElementById(listId);
-
     if (!list) return;
 
-    list.innerHTML = "";
+    list.replaceChildren();
 
-    if (!skills || skills.length === 0) {
+    if (!Array.isArray(skills) || skills.length === 0) {
         const item = document.createElement("li");
         item.textContent = "No skills added yet.";
         list.appendChild(item);
@@ -42,12 +107,31 @@ function displaySkills(listId, skills) {
 
     skills.forEach(function(skill) {
         const item = document.createElement("li");
-
         item.textContent =
             typeof skill === "string" ? skill : skill.name;
-
         list.appendChild(item);
     });
+}
+
+// =========================
+// LOAD SKILLS
+// =========================
+
+async function getSkills(type) {
+    const response = await fetchWithTimeout(
+        `${API_URL}/api/skills/${type}`
+    );
+
+    const data = await readApiResponse(
+        response,
+        "load " + type + " skills"
+    );
+
+    if (!Array.isArray(data.skills)) {
+        throw new Error("Invalid skills response.");
+    }
+
+    return data.skills;
 }
 
 // =========================
@@ -74,22 +158,16 @@ async function loadProfilePage() {
     if (loadingError) loadingError.hidden = true;
 
     try {
-        const profileResponse = await fetchWithTimeout(
-            `${API_URL}/api/profile`,
-            { credentials: "include" }
+        const response = await fetchWithTimeout(
+            `${API_URL}/api/profile`
         );
 
-        if (profileResponse.status === 401) {
-            window.location.href = "login.html";
-            return;
-        }
+        const data = await readApiResponse(
+            response,
+            "load your profile"
+        );
 
-        if (!profileResponse.ok) {
-            throw new Error("Could not load profile.");
-        }
-
-        const profileData = await profileResponse.json();
-        const profile = profileData.profile;
+        const profile = data.profile;
 
         if (!profile) {
             throw new Error("Profile data is missing.");
@@ -104,15 +182,17 @@ async function loadProfilePage() {
         document.getElementById("profile-bio").textContent =
             profile.bio || "";
 
-        // Profile picture
+        // =========================
+        // PROFILE PICTURE
+        // =========================
+
         const profileImage =
             document.getElementById("profile-image");
 
         if (profileImage && profile.profile_image) {
             try {
                 const imageResponse = await fetchWithTimeout(
-                    `${API_URL}/api/profile/image`,
-                    { credentials: "include" }
+                    `${API_URL}/api/profile/image`
                 );
 
                 if (!imageResponse.ok) {
@@ -122,63 +202,69 @@ async function loadProfilePage() {
                 const imageBlob = await imageResponse.blob();
                 const imageUrl = URL.createObjectURL(imageBlob);
 
-                profileImage.onload = () => {
+                profileImage.onload = function() {
                     URL.revokeObjectURL(imageUrl);
+                };
+
+                profileImage.onerror = function() {
+                    URL.revokeObjectURL(imageUrl);
+                    profileImage.hidden = true;
+
+                    showProfileMessage(
+                        loadingError,
+                        "Your profile loaded, but your picture " +
+                        "could not be displayed.",
+                        true
+                    );
                 };
 
                 profileImage.src = imageUrl;
                 profileImage.hidden = false;
 
             } catch (error) {
-                console.error(error);
+                console.error("Profile image error:", error);
                 profileImage.hidden = true;
+
+                showProfileMessage(
+                    loadingError,
+                    getProfileError(error, "load your profile picture"),
+                    true
+                );
             }
         }
 
-        // Teaching skills
+        // =========================
+        // TEACHING SKILLS
+        // =========================
+
         try {
-            const teachResponse = await fetchWithTimeout(
-                `${API_URL}/api/skills/teach`,
-                { credentials: "include" }
-            );
-
-            if (teachResponse.ok) {
-                const teachData = await teachResponse.json();
-
-                displaySkills(
-                    "teach-skills",
-                    teachData.skills || []
-                );
-            } else {
-                displaySkills("teach-skills", []);
-            }
+            const teachSkills = await getSkills("teach");
+            displaySkills("teach-skills", teachSkills);
 
         } catch (error) {
-            console.error(error);
-            displaySkills("teach-skills", []);
+            console.error("Teaching skills error:", error);
+
+            showListError(
+                "teach-skills",
+                getProfileError(error, "load teaching skills")
+            );
         }
 
-        // Learning skills
+        // =========================
+        // LEARNING SKILLS
+        // =========================
+
         try {
-            const learnResponse = await fetchWithTimeout(
-                `${API_URL}/api/skills/learn`,
-                { credentials: "include" }
-            );
-
-            if (learnResponse.ok) {
-                const learnData = await learnResponse.json();
-
-                displaySkills(
-                    "learn-skills",
-                    learnData.skills || []
-                );
-            } else {
-                displaySkills("learn-skills", []);
-            }
+            const learnSkills = await getSkills("learn");
+            displaySkills("learn-skills", learnSkills);
 
         } catch (error) {
-            console.error(error);
-            displaySkills("learn-skills", []);
+            console.error("Learning skills error:", error);
+
+            showListError(
+                "learn-skills",
+                getProfileError(error, "load learning skills")
+            );
         }
 
         if (profileContent) {
@@ -186,13 +272,13 @@ async function loadProfilePage() {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("Profile loading error:", error);
 
-        if (loadingError) {
-            loadingError.hidden = false;
-            loadingError.textContent =
-                "Could not load your profile. Please try again.";
-        }
+        showProfileMessage(
+            loadingError,
+            getProfileError(error, "load your profile"),
+            true
+        );
 
     } finally {
         if (loadingIndicator) {
@@ -238,14 +324,11 @@ async function setupEditProfilePage() {
 
     function updateSkills(listId, skills) {
         const list = document.getElementById(listId);
-
         if (!list) return;
 
-        list.innerHTML = "";
+        list.replaceChildren();
 
-        if (!skills || skills.length === 0) {
-            return;
-        }
+        if (!Array.isArray(skills)) return;
 
         skills.forEach(function(skill) {
             const item = document.createElement("li");
@@ -265,20 +348,14 @@ async function setupEditProfilePage() {
 
     try {
         const response = await fetchWithTimeout(
-            `${API_URL}/api/profile`,
-            { credentials: "include" }
+            `${API_URL}/api/profile`
         );
 
-        if (response.status === 401) {
-            window.location.href = "login.html";
-            return;
-        }
+        const data = await readApiResponse(
+            response,
+            "load your profile"
+        );
 
-        if (!response.ok) {
-            throw new Error("Could not load profile.");
-        }
-
-        const data = await response.json();
         const profile = data.profile;
 
         if (!profile) {
@@ -289,40 +366,32 @@ async function setupEditProfilePage() {
         majorInput.value = profile.major || "";
         bioInput.value = profile.bio || "";
 
-        // Load teaching skills
+        // Teaching skills
         try {
-            const teachResponse = await fetchWithTimeout(
-                `${API_URL}/api/skills/teach`,
-                { credentials: "include" }
-            );
+            teachSkills = await getSkills("teach");
+            updateSkills("teach-list", teachSkills);
 
-            if (teachResponse.ok) {
-                const teachData = await teachResponse.json();
-
-                teachSkills = teachData.skills || [];
-
-                updateSkills("teach-list", teachSkills);
-            }
         } catch (error) {
             console.error("Teaching skills error:", error);
+
+            showListError(
+                "teach-list",
+                getProfileError(error, "load teaching skills")
+            );
         }
 
-        // Load learning skills
+        // Learning skills
         try {
-            const learnResponse = await fetchWithTimeout(
-                `${API_URL}/api/skills/learn`,
-                { credentials: "include" }
-            );
+            learnSkills = await getSkills("learn");
+            updateSkills("learn-list", learnSkills);
 
-            if (learnResponse.ok) {
-                const learnData = await learnResponse.json();
-
-                learnSkills = learnData.skills || [];
-
-                updateSkills("learn-list", learnSkills);
-            }
         } catch (error) {
             console.error("Learning skills error:", error);
+
+            showListError(
+                "learn-list",
+                getProfileError(error, "load learning skills")
+            );
         }
 
         if (editContent) {
@@ -330,13 +399,13 @@ async function setupEditProfilePage() {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("Edit profile loading error:", error);
 
-        if (editError) {
-            editError.hidden = false;
-            editError.textContent =
-                "Could not load your profile. Please try again.";
-        }
+        showProfileMessage(
+            editError,
+            getProfileError(error, "load your profile"),
+            true
+        );
 
     } finally {
         if (editLoading) {
@@ -360,12 +429,16 @@ async function setupEditProfilePage() {
 
                 const skill = input.value.trim();
 
-                if (skill === "") {
-                    message.textContent =
-                        "Please enter a skill.";
-                    message.style.color = "red";
+                if (!skill) {
+                    showProfileMessage(
+                        message,
+                        "Please enter a skill.",
+                        true
+                    );
                     return;
                 }
+
+                addTeachButton.disabled = true;
 
                 try {
                     const response = await fetchWithTimeout(
@@ -375,35 +448,40 @@ async function setupEditProfilePage() {
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            credentials: "include",
-                            body: JSON.stringify({
-                                name: skill
-                            })
+                            body: JSON.stringify({ name: skill })
                         }
                     );
 
-                    const data = await response.json();
+                    const data = await readApiResponse(
+                        response,
+                        "add teaching skill"
+                    );
 
-                    if (!response.ok) {
-                        message.textContent =
-                            data.message || "Could not add skill.";
-                        message.style.color = "red";
-                        return;
+                    if (!data.skill) {
+                        throw new Error("Invalid skill response.");
                     }
 
                     teachSkills.push(data.skill);
                     updateSkills("teach-list", teachSkills);
 
                     input.value = "";
-                    message.textContent =
-                        "Teaching skill added successfully!";
-                    message.style.color = "green";
+
+                    showProfileMessage(
+                        message,
+                        "Teaching skill added successfully!"
+                    );
 
                 } catch (error) {
-                    console.error(error);
-                    message.textContent =
-                        "Could not connect to the server.";
-                    message.style.color = "red";
+                    console.error("Add teaching skill error:", error);
+
+                    showProfileMessage(
+                        message,
+                        getProfileError(error, "add teaching skill"),
+                        true
+                    );
+
+                } finally {
+                    addTeachButton.disabled = false;
                 }
             }
         );
@@ -425,12 +503,16 @@ async function setupEditProfilePage() {
 
                 const skill = input.value.trim();
 
-                if (skill === "") {
-                    message.textContent =
-                        "Please enter a skill.";
-                    message.style.color = "red";
+                if (!skill) {
+                    showProfileMessage(
+                        message,
+                        "Please enter a skill.",
+                        true
+                    );
                     return;
                 }
+
+                addLearnButton.disabled = true;
 
                 try {
                     const response = await fetchWithTimeout(
@@ -440,35 +522,40 @@ async function setupEditProfilePage() {
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            credentials: "include",
-                            body: JSON.stringify({
-                                name: skill
-                            })
+                            body: JSON.stringify({ name: skill })
                         }
                     );
 
-                    const data = await response.json();
+                    const data = await readApiResponse(
+                        response,
+                        "add learning skill"
+                    );
 
-                    if (!response.ok) {
-                        message.textContent =
-                            data.message || "Could not add skill.";
-                        message.style.color = "red";
-                        return;
+                    if (!data.skill) {
+                        throw new Error("Invalid skill response.");
                     }
 
                     learnSkills.push(data.skill);
                     updateSkills("learn-list", learnSkills);
 
                     input.value = "";
-                    message.textContent =
-                        "Learning skill added successfully!";
-                    message.style.color = "green";
+
+                    showProfileMessage(
+                        message,
+                        "Learning skill added successfully!"
+                    );
 
                 } catch (error) {
-                    console.error(error);
-                    message.textContent =
-                        "Could not connect to the server.";
-                    message.style.color = "red";
+                    console.error("Add learning skill error:", error);
+
+                    showProfileMessage(
+                        message,
+                        getProfileError(error, "add learning skill"),
+                        true
+                    );
+
+                } finally {
+                    addLearnButton.disabled = false;
                 }
             }
         );
@@ -487,12 +574,19 @@ async function setupEditProfilePage() {
             const major = majorInput.value.trim();
             const bio = bioInput.value.trim();
 
-            if (name === "") {
-                message.textContent =
-                    "Please enter your full name.";
-                message.style.color = "red";
+            if (!name) {
+                showProfileMessage(
+                    message,
+                    "Please enter your full name.",
+                    true
+                );
                 return;
             }
+
+            const saveButton =
+                editForm.querySelector('button[type="submit"]');
+
+            if (saveButton) saveButton.disabled = true;
 
             try {
                 const formData = new FormData();
@@ -519,33 +613,33 @@ async function setupEditProfilePage() {
                     `${API_URL}/api/profile`,
                     {
                         method: "PUT",
-                        credentials: "include",
                         body: formData
                     }
                 );
 
-                const data = await response.json();
+                await readApiResponse(
+                    response,
+                    "save your profile"
+                );
 
-                if (!response.ok) {
-                    message.textContent =
-                        data.message ||
-                        "Profile could not be saved.";
-                    message.style.color = "red";
-                    return;
-                }
-
-                message.textContent =
-                    "Profile saved successfully!";
-                message.style.color = "green";
+                showProfileMessage(
+                    message,
+                    "Profile saved successfully!"
+                );
 
                 window.location.href = "profile.html";
 
             } catch (error) {
-                console.error(error);
+                console.error("Profile saving error:", error);
 
-                message.textContent =
-                    "Could not connect to the server.";
-                message.style.color = "red";
+                showProfileMessage(
+                    message,
+                    getProfileError(error, "save your profile"),
+                    true
+                );
+
+            } finally {
+                if (saveButton) saveButton.disabled = false;
             }
         }
     );
