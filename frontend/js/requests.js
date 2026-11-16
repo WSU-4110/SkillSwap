@@ -58,6 +58,7 @@ async function loadRequests(offset = 0) {
 
                 acceptButton.addEventListener("click", async () => {
                     acceptButton.disabled = true;
+                    rejectButton.disabled = true;
                     acceptButton.textContent = "Accepting...";
 
                     try {
@@ -73,13 +74,18 @@ async function loadRequests(offset = 0) {
                             throw new Error("Could not accept request.");
                         }
 
+
+
                         status.textContent = "Status: accepted";
                         acceptButton.textContent = "Accepted";
+                        rejectButton.disabled = true;
                         statusMessage.textContent = "Swap request accepted!";
 
+
+
                     } catch (error) {
-                        statusMessage.textContent = error.message;
                         acceptButton.disabled = false;
+                        rejectButton.disabled = false;
                         acceptButton.textContent = "Accept Request";
                     }
                 });
@@ -92,10 +98,37 @@ async function loadRequests(offset = 0) {
                 rejectButton.type = "button";
                 rejectButton.className = "reject-request-button";
                 rejectButton.textContent = "Reject Request";
-
-                // The rejection API will be connected in FR12 PR #2.
+                rejectButton.addEventListener("click", async () => {
                 rejectButton.disabled = true;
-                rejectButton.title = "Reject functionality coming soon";
+                acceptButton.disabled = true;
+                rejectButton.textContent = "Rejecting...";
+
+                try {
+                    const response = await fetch(
+                        `${API_URL}/api/requests/${request.id}/reject`,
+                        {
+                            method: "PATCH",
+                            credentials: "include"
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || "Could not reject request.");
+                    }
+
+                    status.textContent = "Status: rejected";
+                    rejectButton.textContent = "Rejected";
+                    statusMessage.textContent = "Swap request rejected!";
+
+                } catch (error) {
+                    statusMessage.textContent = error.message;
+                    rejectButton.disabled = false;
+                    acceptButton.disabled = false;
+                    rejectButton.textContent = "Reject Request";
+                }
+            });
+
 
                 requestActions.append(acceptButton, rejectButton);
                 card.appendChild(requestActions);
