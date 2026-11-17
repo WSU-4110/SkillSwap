@@ -2624,3 +2624,54 @@ body.modern-messages-page {
     font-weight: 700;
     text-align: center;
 }
+
+/* =====================================
+   NFR-5 Task 5: Mobile Navigation Fix
+   ===================================== */
+
+@media (max-width: 600px) {
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        padding: 16px;
+    }
+
+    .logo {
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .logo img {
+        width: 36px;
+        height: 36px;
+    }
+
+    .nav-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .nav-buttons a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 14px;
+        border-radius: 8px;
+        background-color: #e6f4f1;
+        text-align: center;
+    }
+
+    #logout-btn {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+}
