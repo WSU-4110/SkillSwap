@@ -8,7 +8,46 @@ const loadMoreButton = document.getElementById("load-more-requests");
 let nextOffset = null;
 let isLoading = false;
 
-// Load incoming swap requests.
+// =========================
+// NFR-5 TASK 4: RETRY BUTTON
+// =========================
+
+function showRequestsRetryButton(message, offset) {
+    statusMessage.replaceChildren();
+
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.color = "#b91c1c";
+    text.style.marginBottom = "10px";
+
+    const retryButton = document.createElement("button");
+    retryButton.type = "button";
+    retryButton.className = "swap-request-button";
+    retryButton.textContent = "🔄 Try Again";
+
+    retryButton.style.backgroundColor = "#2563eb";
+    retryButton.style.color = "white";
+    retryButton.style.border = "none";
+    retryButton.style.borderRadius = "8px";
+    retryButton.style.padding = "10px 18px";
+    retryButton.style.cursor = "pointer";
+
+    retryButton.addEventListener("click", function() {
+        if (isLoading) return;
+
+        retryButton.disabled = true;
+        retryButton.textContent = "Retrying...";
+
+        loadRequests(offset);
+    });
+
+    statusMessage.append(text, retryButton);
+}
+
+// =========================
+// LOAD INCOMING REQUESTS
+// =========================
+
 async function loadRequests(offset = 0) {
     if (isLoading) return;
 
@@ -19,7 +58,10 @@ async function loadRequests(offset = 0) {
     try {
         const response = await fetch(
             `${API_URL}/api/requests?direction=incoming&offset=${offset}`,
-            { credentials: "include" }
+            {
+                credentials: "include",
+                cache: "no-store"
+            }
         );
 
         if (response.status === 401) {
@@ -33,6 +75,11 @@ async function loadRequests(offset = 0) {
 
         const data = await response.json();
 
+        if (!Array.isArray(data.requests)) {
+            throw new Error("Unexpected response from server.");
+        }
+
+        // Clear existing cards only after a successful first-page load.
         if (offset === 0) {
             requestsContainer.replaceChildren();
         }
@@ -69,6 +116,11 @@ async function loadRequests(offset = 0) {
                             }
                         );
 
+                        if (result.status === 401) {
+                            window.location.replace("login.html");
+                            return;
+                        }
+
                         if (!result.ok) {
                             throw new Error("Could not accept request.");
                         }
@@ -78,6 +130,8 @@ async function loadRequests(offset = 0) {
                         statusMessage.textContent = "Swap request accepted!";
 
                     } catch (error) {
+                        console.error("Accept request error:", error);
+
                         statusMessage.textContent = error.message;
                         acceptButton.disabled = false;
                         acceptButton.textContent = "Accept Request";
@@ -96,20 +150,34 @@ async function loadRequests(offset = 0) {
             statusMessage.textContent = "";
         }
 
-        nextOffset = data.nextOffset;
+        nextOffset = data.nextOffset ?? null;
         loadMoreButton.hidden = nextOffset === null;
 
     } catch (error) {
-        statusMessage.textContent = error.message;
+        console.error("Requests loading error:", error);
+
+        showRequestsRetryButton(
+            "Could not load requests. Please try again.",
+            offset
+        );
+
     } finally {
         isLoading = false;
     }
 }
+
+// =========================
+// LOAD MORE REQUESTS
+// =========================
 
 loadMoreButton.addEventListener("click", () => {
     if (nextOffset !== null) {
         loadRequests(nextOffset);
     }
 });
+
+// =========================
+// INITIAL LOAD
+// =========================
 
 loadRequests();
