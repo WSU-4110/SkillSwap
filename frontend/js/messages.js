@@ -36,6 +36,40 @@ let currentUser = null;
 let otherUser = null;
 let messages = [];
 
+// =========================
+// NFR-5: ERROR HANDLING
+// =========================
+
+function showMessageError(element, message) {
+    element.textContent = message;
+    element.setAttribute("role", "alert");
+    element.style.color = "#991b1b";
+}
+
+function showMessageStatus(element, message) {
+    element.textContent = message;
+    element.setAttribute("role", "status");
+    element.style.color = "";
+}
+
+function getMessageError(error, action) {
+    if (error instanceof TypeError) {
+        return (
+            "Unable to connect to SkillSwap. " +
+            "Please check your connection and try again."
+        );
+    }
+
+    return (
+        "Could not " + action +
+        ". Please try again later."
+    );
+}
+
+// =========================
+// API REQUESTS
+// =========================
+
 async function apiRequest(url, options = {}) {
     const response = await fetch(API_URL + url, {
         credentials: "include",
@@ -51,11 +85,17 @@ async function apiRequest(url, options = {}) {
     }
 
     if (!response.ok) {
-        throw new Error(data.message || "Something went wrong.");
+        throw new Error(
+            data.message || "Request failed: " + response.status
+        );
     }
 
     return data;
 }
+
+// =========================
+// FORMAT MESSAGE TIME
+// =========================
 
 function formatTime(value) {
     if (!value) return "";
@@ -70,11 +110,17 @@ function formatTime(value) {
     });
 }
 
+// =========================
+// CREATE AVATAR
+// =========================
+
 function createAvatar(name, studentId) {
     const avatar = document.createElement("div");
     avatar.className = "chat-avatar";
 
-    const initial = (name || "?").trim().charAt(0).toUpperCase();
+    const initial =
+        (name || "?").trim().charAt(0).toUpperCase();
+
     avatar.textContent = initial;
 
     if (!studentId) return avatar;
@@ -90,20 +136,27 @@ function createAvatar(name, studentId) {
     };
 
     img.onerror = function () {
-        // Keep the initial if no profile image exists.
+        // Keep the initial if the image is unavailable.
     };
 
     return avatar;
 }
 
+// =========================
+// UNREAD MESSAGE BADGE
+// =========================
+
 function updateNavigationBadge(totalUnread) {
-    const badge = document.getElementById("nav-message-count");
+    const badge =
+        document.getElementById("nav-message-count");
 
     if (!badge) return;
 
     if (totalUnread > 0) {
         badge.hidden = false;
-        badge.textContent = totalUnread > 99 ? "99+" : totalUnread;
+        badge.textContent =
+            totalUnread > 99 ? "99+" : totalUnread;
+
         badge.setAttribute(
             "aria-label",
             totalUnread + " unread messages"
@@ -114,25 +167,34 @@ function updateNavigationBadge(totalUnread) {
     }
 }
 
+// =========================
+// LOAD CONVERSATIONS
+// =========================
+
 async function loadConversations() {
     const data = await apiRequest("/conversations");
 
-    const conversations = Array.isArray(data.conversations)
-        ? data.conversations
-        : [];
+    if (!Array.isArray(data.conversations)) {
+        throw new Error("Invalid conversation response.");
+    }
+
+    const conversations = data.conversations;
 
     conversationList.replaceChildren();
 
     conversationCount.textContent =
-        conversations.length + (
-            conversations.length === 1
-                ? " conversation"
-                : " conversations"
-        );
+        conversations.length +
+        (conversations.length === 1
+            ? " conversation"
+            : " conversations");
 
     const totalUnread = conversations.reduce(
         (total, conversation) =>
-            total + (Number(conversation.unreadCount) || 0),
+            total + (Number(
+                conversation.unreadCount ??
+                conversation.unread_count ??
+                0
+            ) || 0),
         0
     );
 
@@ -147,21 +209,26 @@ async function loadConversations() {
     }
 
     conversations.forEach(conversation => {
-        const studentId = conversation.studentId ??
+        const studentId =
+            conversation.studentId ??
             conversation.student_id;
 
-        const studentName = conversation.studentName ??
+        const studentName =
+            conversation.studentName ??
             conversation.student_name ??
             "Student";
 
-        const lastMessage = conversation.lastMessage ??
+        const lastMessage =
+            conversation.lastMessage ??
             conversation.last_message ??
             "";
 
-        const lastSenderId = conversation.lastSenderId ??
+        const lastSenderId =
+            conversation.lastSenderId ??
             conversation.last_sender_id;
 
-        const lastMessageTime = conversation.lastMessageTime ??
+        const lastMessageTime =
+            conversation.lastMessageTime ??
             conversation.last_message_time;
 
         const unreadCount = Number(
@@ -179,7 +246,8 @@ async function loadConversations() {
             link.classList.add("active-conversation");
         }
 
-        const avatar = createAvatar(studentName, studentId);
+        const avatar =
+            createAvatar(studentName, studentId);
 
         const details = document.createElement("div");
         details.className = "conversation-details";
@@ -225,6 +293,10 @@ async function loadConversations() {
     });
 }
 
+// =========================
+// DISPLAY MESSAGES
+// =========================
+
 function displayMessages() {
     messageList.replaceChildren();
 
@@ -241,8 +313,8 @@ function displayMessages() {
             Number(message.sender_id) === Number(currentUser.id);
 
         const row = document.createElement("div");
-        row.className = "message-row " +
-            (isMine ? "mine" : "theirs");
+        row.className =
+            "message-row " + (isMine ? "mine" : "theirs");
 
         const bubble = document.createElement("div");
         bubble.className = "message-bubble";
@@ -261,17 +333,26 @@ function displayMessages() {
     messageList.scrollTop = messageList.scrollHeight;
 }
 
+// =========================
+// LOAD MESSAGES
+// =========================
+
 async function loadMessages() {
     const data = await apiRequest(
         "/messages/" + encodeURIComponent(userId)
     );
 
-    messages = Array.isArray(data.messages)
-        ? data.messages
-        : [];
+    if (!Array.isArray(data.messages)) {
+        throw new Error("Invalid messages response.");
+    }
 
+    messages = data.messages;
     displayMessages();
 }
+
+// =========================
+// LOAD SELECTED CONVERSATION
+// =========================
 
 async function loadSelectedConversation() {
     if (!/^[1-9]\d*$/.test(userId)) {
@@ -289,7 +370,9 @@ async function loadSelectedConversation() {
     otherUser = profileData.profile;
 
     if (!otherUser || !otherUser.name) {
-        throw new Error("Student profile could not be found.");
+        throw new Error(
+            "Student profile could not be found."
+        );
     }
 
     conversationName.textContent = otherUser.name;
@@ -307,11 +390,16 @@ async function loadSelectedConversation() {
     await loadConversations();
 }
 
+// =========================
+// INITIALIZE MESSAGES
+// =========================
+
 async function initializeMessages() {
     messagesLoading.hidden = false;
     conversationContent.hidden = true;
     chatPlaceholder.hidden = false;
-    conversationStatus.textContent = "";
+
+    showMessageStatus(conversationStatus, "");
 
     try {
         const currentData = await apiRequest("/profile");
@@ -329,31 +417,47 @@ async function initializeMessages() {
 
     } catch (error) {
         console.error("Messages loading error:", error);
-        conversationStatus.textContent = error.message;
+
+        showMessageError(
+            conversationStatus,
+            getMessageError(error, "load your messages")
+        );
 
     } finally {
         messagesLoading.hidden = true;
     }
 }
 
-messageForm.addEventListener("submit", async function (event) {
+// =========================
+// SEND MESSAGE
+// =========================
+
+messageForm.addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const content = messageInput.value.trim();
 
     if (!content) {
-        messageStatus.textContent = "Please enter a message.";
+        showMessageError(
+            messageStatus,
+            "Please enter a message."
+        );
         return;
     }
 
     if (!otherUser || !currentUser || !userId) {
-        messageStatus.textContent = "No conversation selected.";
+        showMessageError(
+            messageStatus,
+            "No conversation selected."
+        );
         return;
     }
 
     if (content.length > 2000) {
-        messageStatus.textContent =
-            "Messages cannot exceed 2000 characters.";
+        showMessageError(
+            messageStatus,
+            "Messages cannot exceed 2000 characters."
+        );
         return;
     }
 
@@ -361,7 +465,10 @@ messageForm.addEventListener("submit", async function (event) {
         messageForm.querySelector('button[type="submit"]');
 
     sendButton.disabled = true;
-    messageStatus.textContent = "Sending...";
+
+    showMessageStatus(messageStatus, "Sending...");
+
+    let sent = false;
 
     try {
         await apiRequest("/messages", {
@@ -375,23 +482,45 @@ messageForm.addEventListener("submit", async function (event) {
             })
         });
 
+        sent = true;
         messageInput.value = "";
-        messageStatus.textContent = "Message sent!";
+
+        showMessageStatus(
+            messageStatus,
+            "Message sent!"
+        );
 
         await loadMessages();
         await loadConversations();
 
     } catch (error) {
         console.error("Message sending error:", error);
-        messageStatus.textContent = error.message;
+
+        if (sent) {
+            showMessageError(
+                messageStatus,
+                "Your message was sent, but the " +
+                "conversation could not refresh. " +
+                "Please reload the page."
+            );
+        } else {
+            showMessageError(
+                messageStatus,
+                getMessageError(error, "send your message")
+            );
+        }
 
     } finally {
         sendButton.disabled = false;
     }
 });
 
+// =========================
+// AUTOMATIC REFRESH
+// =========================
+
 // Refresh conversation previews and unread counts every 8 seconds.
-setInterval(async function () {
+setInterval(async function() {
     if (!currentUser) return;
 
     try {
@@ -401,9 +530,19 @@ setInterval(async function () {
             await loadMessages();
             await loadConversations();
         }
+
     } catch (error) {
         console.error("Message refresh failed:", error);
+
+        showMessageError(
+            conversationStatus,
+            getMessageError(error, "refresh messages")
+        );
     }
 }, 8000);
+
+// =========================
+// INITIALIZE
+// =========================
 
 initializeMessages();

@@ -1,4 +1,6 @@
 
+"use strict";
+
 const API_URL = "http://localhost:3000";
 
 const requestsContainer = document.getElementById("incoming-requests");
@@ -8,18 +10,55 @@ const loadMoreButton = document.getElementById("load-more-requests");
 let nextOffset = null;
 let isLoading = false;
 
-// Load incoming swap requests.
+// =========================
+// NFR-5: ERROR HANDLING
+// =========================
+
+function showRequestError(message) {
+    statusMessage.textContent = message;
+    statusMessage.setAttribute("role", "alert");
+    statusMessage.style.color = "#991b1b";
+}
+
+function showRequestStatus(message) {
+    statusMessage.textContent = message;
+    statusMessage.setAttribute("role", "status");
+    statusMessage.style.color = "";
+}
+
+function getRequestErrorMessage(error, action) {
+    if (error instanceof TypeError) {
+        return (
+            "Unable to connect to SkillSwap. " +
+            "Please check your connection and try again."
+        );
+    }
+
+    return (
+        "Could not " + action +
+        ". Please try again later."
+    );
+}
+
+// =========================
+// LOAD INCOMING REQUESTS
+// =========================
+
 async function loadRequests(offset = 0) {
     if (isLoading) return;
 
     isLoading = true;
     loadMoreButton.hidden = true;
-    statusMessage.textContent = "Loading requests...";
+
+    showRequestStatus("Loading requests...");
 
     try {
         const response = await fetch(
             `${API_URL}/api/requests?direction=incoming&offset=${offset}`,
-            { credentials: "include" }
+            {
+                credentials: "include",
+                cache: "no-store"
+            }
         );
 
         if (response.status === 401) {
@@ -28,10 +67,16 @@ async function loadRequests(offset = 0) {
         }
 
         if (!response.ok) {
-            throw new Error("Could not load requests.");
+            throw new Error(
+                "Request loading failed: " + response.status
+            );
         }
 
         const data = await response.json();
+
+        if (!Array.isArray(data.requests)) {
+            throw new Error("Invalid requests response.");
+        }
 
         if (offset === 0) {
             requestsContainer.replaceChildren();
@@ -42,7 +87,7 @@ async function loadRequests(offset = 0) {
             card.className = "request-card";
 
             const name = document.createElement("h3");
-            name.textContent = request.senderName;
+            name.textContent = request.senderName || "Unknown student";
 
             const status = document.createElement("p");
             status.className = "request-status";
@@ -60,6 +105,8 @@ async function loadRequests(offset = 0) {
                     acceptButton.disabled = true;
                     acceptButton.textContent = "Accepting...";
 
+                    showRequestStatus("");
+
                     try {
                         const result = await fetch(
                             `${API_URL}/api/requests/${request.id}/accept`,
@@ -69,16 +116,34 @@ async function loadRequests(offset = 0) {
                             }
                         );
 
+                        if (result.status === 401) {
+                            window.location.replace("login.html");
+                            return;
+                        }
+
                         if (!result.ok) {
-                            throw new Error("Could not accept request.");
+                            throw new Error(
+                                "Accept request failed: " + result.status
+                            );
                         }
 
                         status.textContent = "Status: accepted";
                         acceptButton.textContent = "Accepted";
-                        statusMessage.textContent = "Swap request accepted!";
+
+                        showRequestStatus(
+                            "Swap request accepted successfully!"
+                        );
 
                     } catch (error) {
-                        statusMessage.textContent = error.message;
+                        console.error("Accept request error:", error);
+
+                        showRequestError(
+                            getRequestErrorMessage(
+                                error,
+                                "accept this request"
+                            )
+                        );
+
                         acceptButton.disabled = false;
                         acceptButton.textContent = "Accept Request";
                     }
@@ -91,25 +156,47 @@ async function loadRequests(offset = 0) {
         }
 
         if (offset === 0 && data.requests.length === 0) {
-            statusMessage.textContent = "You have no incoming requests.";
+            showRequestStatus(
+                "You have no incoming requests."
+            );
         } else {
-            statusMessage.textContent = "";
+            showRequestStatus("");
         }
 
-        nextOffset = data.nextOffset;
+        nextOffset = data.nextOffset ?? null;
         loadMoreButton.hidden = nextOffset === null;
 
     } catch (error) {
-        statusMessage.textContent = error.message;
+        console.error("Request loading error:", error);
+
+        showRequestError(
+            getRequestErrorMessage(error, "load your requests")
+        );
+
+        // Keep previously loaded requests and allow
+        // another attempt to load the same page.
+        if (offset > 0) {
+            nextOffset = offset;
+            loadMoreButton.hidden = false;
+        }
+
     } finally {
         isLoading = false;
     }
 }
+
+// =========================
+// LOAD MORE REQUESTS
+// =========================
 
 loadMoreButton.addEventListener("click", () => {
     if (nextOffset !== null) {
         loadRequests(nextOffset);
     }
 });
+
+// =========================
+// INITIALIZE REQUESTS
+// =========================
 
 loadRequests();
