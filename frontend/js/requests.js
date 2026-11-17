@@ -163,18 +163,19 @@ async function loadRequests(offset = 0) {
             throw new Error("Invalid requests response.");
         }
 
-        // Only clear previous cards after a successful first-page load.
+        // Clear old cards only after a successful first-page load.
         if (offset === 0) {
             requestsContainer.replaceChildren();
         }
 
         // =========================
-        // DISPLAY EMPTY STATE
+        // EMPTY STATE
         // =========================
 
         if (offset === 0 && data.requests.length === 0) {
             showRequestsEmptyState();
             showRequestStatus("");
+
         } else {
 
             // =========================
@@ -196,6 +197,11 @@ async function loadRequests(offset = 0) {
                 card.append(name, status);
 
                 if (request.status === "pending") {
+
+                    // =========================
+                    // ACCEPT BUTTON
+                    // =========================
+
                     const acceptButton =
                         document.createElement("button");
 
@@ -235,6 +241,9 @@ async function loadRequests(offset = 0) {
                                 status.textContent = "Status: accepted";
                                 acceptButton.textContent = "Accepted";
 
+                                // Remove Reject once request is accepted.
+                                rejectButton.remove();
+
                                 showRequestStatus(
                                     "Swap request accepted successfully!"
                                 );
@@ -259,7 +268,34 @@ async function loadRequests(offset = 0) {
                         }
                     );
 
-                    card.appendChild(acceptButton);
+                    // =========================
+                    // FR12: REJECT BUTTON
+                    // =========================
+
+                    const rejectButton =
+                        document.createElement("button");
+
+                    rejectButton.type = "button";
+                    rejectButton.className = "reject-request-button";
+                    rejectButton.textContent = "Reject Request";
+
+                    // Will be connected in FR12 Reject API PR.
+                    rejectButton.disabled = true;
+                    rejectButton.title =
+                        "Reject functionality coming soon";
+
+                    // Display Accept and Reject side by side.
+                    const requestActions =
+                        document.createElement("div");
+
+                    requestActions.className = "request-actions";
+
+                    requestActions.append(
+                        acceptButton,
+                        rejectButton
+                    );
+
+                    card.appendChild(requestActions);
                 }
 
                 requestsContainer.appendChild(card);
@@ -274,7 +310,7 @@ async function loadRequests(offset = 0) {
     } catch (error) {
         console.error("Request loading error:", error);
 
-        // Preserve the page offset for retrying.
+        // Preserve pagination for retry.
         if (offset > 0) {
             nextOffset = offset;
         }
