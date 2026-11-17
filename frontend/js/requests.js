@@ -163,7 +163,7 @@ async function loadRequests(offset = 0) {
             throw new Error("Invalid requests response.");
         }
 
-        // Clear old cards only after a successful first-page load.
+        // Clear previous cards after a successful first-page load.
         if (offset === 0) {
             requestsContainer.replaceChildren();
         }
@@ -209,10 +209,26 @@ async function loadRequests(offset = 0) {
                     acceptButton.className = "swap-request-button";
                     acceptButton.textContent = "Accept Request";
 
+                    // =========================
+                    // REJECT BUTTON
+                    // =========================
+
+                    const rejectButton =
+                        document.createElement("button");
+
+                    rejectButton.type = "button";
+                    rejectButton.className = "reject-request-button";
+                    rejectButton.textContent = "Reject Request";
+
+                    // =========================
+                    // ACCEPT REQUEST API
+                    // =========================
+
                     acceptButton.addEventListener(
                         "click",
                         async () => {
                             acceptButton.disabled = true;
+                            rejectButton.disabled = true;
                             acceptButton.textContent = "Accepting...";
 
                             showRequestStatus("");
@@ -241,8 +257,9 @@ async function loadRequests(offset = 0) {
                                 status.textContent = "Status: accepted";
                                 acceptButton.textContent = "Accepted";
 
-                                // Remove Reject once request is accepted.
-                                rejectButton.remove();
+                                // Keep both actions disabled after acceptance.
+                                acceptButton.disabled = true;
+                                rejectButton.disabled = true;
 
                                 showRequestStatus(
                                     "Swap request accepted successfully!"
@@ -262,6 +279,7 @@ async function loadRequests(offset = 0) {
                                 );
 
                                 acceptButton.disabled = false;
+                                rejectButton.disabled = false;
                                 acceptButton.textContent =
                                     "Accept Request";
                             }
@@ -269,22 +287,79 @@ async function loadRequests(offset = 0) {
                     );
 
                     // =========================
-                    // FR12: REJECT BUTTON
+                    // FR12: REJECT REQUEST API
                     // =========================
 
-                    const rejectButton =
-                        document.createElement("button");
+                    rejectButton.addEventListener(
+                        "click",
+                        async () => {
+                            rejectButton.disabled = true;
+                            acceptButton.disabled = true;
+                            rejectButton.textContent = "Rejecting...";
 
-                    rejectButton.type = "button";
-                    rejectButton.className = "reject-request-button";
-                    rejectButton.textContent = "Reject Request";
+                            showRequestStatus("");
 
-                    // Will be connected in FR12 Reject API PR.
-                    rejectButton.disabled = true;
-                    rejectButton.title =
-                        "Reject functionality coming soon";
+                            try {
+                                const response = await fetch(
+                                    `${API_URL}/api/requests/${request.id}/reject`,
+                                    {
+                                        method: "PATCH",
+                                        credentials: "include"
+                                    }
+                                );
 
-                    // Display Accept and Reject side by side.
+                                if (response.status === 401) {
+                                    window.location.replace("login.html");
+                                    return;
+                                }
+
+                                if (!response.ok) {
+                                    const errorData =
+                                        await response.json()
+                                            .catch(() => ({}));
+
+                                    throw new Error(
+                                        errorData.message ||
+                                        "Could not reject request."
+                                    );
+                                }
+
+                                status.textContent = "Status: rejected";
+                                rejectButton.textContent = "Rejected";
+
+                                // Prevent further changes after rejection.
+                                rejectButton.disabled = true;
+                                acceptButton.disabled = true;
+
+                                showRequestStatus(
+                                    "Swap request rejected successfully!"
+                                );
+
+                            } catch (error) {
+                                console.error(
+                                    "Reject request error:",
+                                    error
+                                );
+
+                                showRequestError(
+                                    getRequestErrorMessage(
+                                        error,
+                                        "reject this request"
+                                    )
+                                );
+
+                                rejectButton.disabled = false;
+                                acceptButton.disabled = false;
+                                rejectButton.textContent =
+                                    "Reject Request";
+                            }
+                        }
+                    );
+
+                    // =========================
+                    // DISPLAY BOTH BUTTONS
+                    // =========================
+
                     const requestActions =
                         document.createElement("div");
 
