@@ -63,7 +63,7 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
                 cache: "no-store"
             }
         );
-
+        if (currentSearch !== searchVersion) return;
         if (response.status === 401) {
             window.location.href = "login.html";
             return;
@@ -128,10 +128,25 @@ const skillSearch = document.getElementById("skill-search");
 const searchResults = document.getElementById("search-results");
 const searchStatus = document.getElementById("search-status");
 
+const clearSearchButton = document.getElementById("clear-search");
+
+let searchVersion = 0;
+
+clearSearchButton.addEventListener("click", function() {
+    searchVersion++;
+    skillSearch.value = "";
+    searchResults.replaceChildren();
+    searchStatus.textContent = "";
+    skillSearch.focus();
+});
+
+
 searchForm.addEventListener("submit", async function(event) {
     event.preventDefault();
 
     const skill = skillSearch.value.trim();
+    const currentSearch = ++searchVersion;
+    
 
     if (!skill) {
         searchStatus.textContent = "Please enter a skill.";
@@ -161,6 +176,7 @@ searchForm.addEventListener("submit", async function(event) {
         }
 
         const data = await response.json();
+        if (currentSearch !== searchVersion) return;
 
         if (!Array.isArray(data.users)) {
             throw new Error("Unexpected response.");
@@ -175,6 +191,7 @@ searchForm.addEventListener("submit", async function(event) {
             : data.users.length + " student(s) found.";
 
     } catch (error) {
+        if (currentSearch !== searchVersion) return;
         searchStatus.textContent =
             "Could not search students. Please try again.";
     }
