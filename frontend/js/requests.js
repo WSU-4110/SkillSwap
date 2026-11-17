@@ -65,7 +65,7 @@ function showRequestsEmptyState() {
     emptyBox.style.backgroundColor = "#eff6ff";
 
     const icon = document.createElement("div");
-    icon.textContent = "🎲";
+    icon.textContent = "📭";
     icon.style.fontSize = "32px";
     icon.style.marginBottom = "10px";
 
@@ -145,6 +145,8 @@ async function loadRequests(offset = 0) {
     if (isLoading) return;
 
     isLoading = true;
+    loadMoreButton.disabled = true;
+    loadMoreButton.textContent = "Loading...";
     loadMoreButton.hidden = true;
 
     showRequestStatus("Loading requests...");
@@ -409,8 +411,10 @@ async function loadRequests(offset = 0) {
         );
 
     } finally {
-        isLoading = false;
-    }
+    isLoading = false;
+    loadMoreButton.disabled = false;
+    loadMoreButton.textContent = "Load More";
+}
 }
 
 // =========================
