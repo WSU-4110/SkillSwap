@@ -168,6 +168,41 @@ function updateNavigationBadge(totalUnread) {
 }
 
 // =========================
+// NFR-5 TASK 3: FRIENDLY EMPTY STATES
+// =========================
+
+function showChatEmptyState(container, emoji, title, description) {
+    container.replaceChildren();
+
+    const box = document.createElement("div");
+    box.className = "skills-box";
+    box.style.textAlign = "center";
+    box.style.padding = "30px 20px";
+    box.style.margin = "15px";
+    box.style.border = "1px solid #bfdbfe";
+    box.style.borderRadius = "12px";
+    box.style.backgroundColor = "#eff6ff";
+
+    const symbol = document.createElement("div");
+    symbol.textContent = emoji;
+    symbol.style.fontSize = "32px";
+    symbol.style.marginBottom = "10px";
+
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    heading.style.color = "#1e40af";
+    heading.style.marginBottom = "8px";
+
+    const details = document.createElement("p");
+    details.textContent = description;
+    details.style.color = "#475569";
+    details.style.margin = "0";
+
+    box.append(symbol, heading, details);
+    container.appendChild(box);
+}
+
+// =========================
 // LOAD CONVERSATIONS
 // =========================
 
@@ -201,10 +236,13 @@ async function loadConversations() {
     updateNavigationBadge(totalUnread);
 
     if (conversations.length === 0) {
-        const empty = document.createElement("p");
-        empty.textContent = "No conversations yet.";
-        empty.style.padding = "15px";
-        conversationList.appendChild(empty);
+        showChatEmptyState(
+            conversationList,
+            "💬",
+            "No conversations yet!",
+            "Your SkillSwap chats will appear here. Browse students " +
+                "and connect with someone to start swapping skills!"
+        );
         return;
     }
 
@@ -301,10 +339,13 @@ function displayMessages() {
     messageList.replaceChildren();
 
     if (messages.length === 0) {
-        const empty = document.createElement("p");
-        empty.textContent =
-            "No messages yet. Start the conversation!";
-        messageList.appendChild(empty);
+        showChatEmptyState(
+            messageList,
+            "👋",
+            "Say hello!",
+            "No messages in this chat yet. Break the ice and " +
+                "start a conversation about swapping skills!"
+        );
         return;
     }
 

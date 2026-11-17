@@ -3,9 +3,14 @@
 
 const API_URL = "http://localhost:3000";
 
-const requestsContainer = document.getElementById("incoming-requests");
-const statusMessage = document.getElementById("requests-status");
-const loadMoreButton = document.getElementById("load-more-requests");
+const requestsContainer =
+    document.getElementById("incoming-requests");
+
+const statusMessage =
+    document.getElementById("requests-status");
+
+const loadMoreButton =
+    document.getElementById("load-more-requests");
 
 let nextOffset = null;
 let isLoading = false;
@@ -38,6 +43,46 @@ function getRequestErrorMessage(error, action) {
         "Could not " + action +
         ". Please try again later."
     );
+}
+
+// =========================
+// NFR-5 TASK 3: EMPTY STATE
+// =========================
+
+function showRequestsEmptyState() {
+    requestsContainer.replaceChildren();
+
+    const emptyBox = document.createElement("div");
+    emptyBox.className = "skills-box";
+
+    emptyBox.style.textAlign = "center";
+    emptyBox.style.padding = "30px 20px";
+    emptyBox.style.marginTop = "15px";
+    emptyBox.style.border = "1px solid #bfdbfe";
+    emptyBox.style.borderRadius = "12px";
+    emptyBox.style.backgroundColor = "#eff6ff";
+
+    const icon = document.createElement("div");
+    icon.textContent = "🎲";
+    icon.style.fontSize = "32px";
+    icon.style.marginBottom = "10px";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "No swap requests yet!";
+    heading.style.color = "#1e40af";
+    heading.style.marginBottom = "8px";
+
+    const description = document.createElement("p");
+    description.textContent =
+        "You don't have any incoming swap requests right now. " +
+        "When another student wants to exchange skills with you, " +
+        "their request will appear here.";
+
+    description.style.color = "#475569";
+    description.style.margin = "0";
+
+    emptyBox.append(icon, heading, description);
+    requestsContainer.appendChild(emptyBox);
 }
 
 // =========================
@@ -82,84 +127,103 @@ async function loadRequests(offset = 0) {
             requestsContainer.replaceChildren();
         }
 
-        for (const request of data.requests) {
-            const card = document.createElement("div");
-            card.className = "request-card";
-
-            const name = document.createElement("h3");
-            name.textContent = request.senderName || "Unknown student";
-
-            const status = document.createElement("p");
-            status.className = "request-status";
-            status.textContent = `Status: ${request.status}`;
-
-            card.append(name, status);
-
-            if (request.status === "pending") {
-                const acceptButton = document.createElement("button");
-                acceptButton.type = "button";
-                acceptButton.className = "swap-request-button";
-                acceptButton.textContent = "Accept Request";
-
-                acceptButton.addEventListener("click", async () => {
-                    acceptButton.disabled = true;
-                    acceptButton.textContent = "Accepting...";
-
-                    showRequestStatus("");
-
-                    try {
-                        const result = await fetch(
-                            `${API_URL}/api/requests/${request.id}/accept`,
-                            {
-                                method: "PATCH",
-                                credentials: "include"
-                            }
-                        );
-
-                        if (result.status === 401) {
-                            window.location.replace("login.html");
-                            return;
-                        }
-
-                        if (!result.ok) {
-                            throw new Error(
-                                "Accept request failed: " + result.status
-                            );
-                        }
-
-                        status.textContent = "Status: accepted";
-                        acceptButton.textContent = "Accepted";
-
-                        showRequestStatus(
-                            "Swap request accepted successfully!"
-                        );
-
-                    } catch (error) {
-                        console.error("Accept request error:", error);
-
-                        showRequestError(
-                            getRequestErrorMessage(
-                                error,
-                                "accept this request"
-                            )
-                        );
-
-                        acceptButton.disabled = false;
-                        acceptButton.textContent = "Accept Request";
-                    }
-                });
-
-                card.appendChild(acceptButton);
-            }
-
-            requestsContainer.appendChild(card);
-        }
+        // =========================
+        // DISPLAY EMPTY STATE
+        // =========================
 
         if (offset === 0 && data.requests.length === 0) {
-            showRequestStatus(
-                "You have no incoming requests."
-            );
+            showRequestsEmptyState();
+            showRequestStatus("");
         } else {
+
+            // =========================
+            // DISPLAY REQUEST CARDS
+            // =========================
+
+            for (const request of data.requests) {
+                const card = document.createElement("div");
+                card.className = "request-card";
+
+                const name = document.createElement("h3");
+                name.textContent =
+                    request.senderName || "Unknown student";
+
+                const status = document.createElement("p");
+                status.className = "request-status";
+                status.textContent = `Status: ${request.status}`;
+
+                card.append(name, status);
+
+                if (request.status === "pending") {
+                    const acceptButton =
+                        document.createElement("button");
+
+                    acceptButton.type = "button";
+                    acceptButton.className = "swap-request-button";
+                    acceptButton.textContent = "Accept Request";
+
+                    acceptButton.addEventListener(
+                        "click",
+                        async () => {
+                            acceptButton.disabled = true;
+                            acceptButton.textContent = "Accepting...";
+
+                            showRequestStatus("");
+
+                            try {
+                                const result = await fetch(
+                                    `${API_URL}/api/requests/${request.id}/accept`,
+                                    {
+                                        method: "PATCH",
+                                        credentials: "include"
+                                    }
+                                );
+
+                                if (result.status === 401) {
+                                    window.location.replace("login.html");
+                                    return;
+                                }
+
+                                if (!result.ok) {
+                                    throw new Error(
+                                        "Accept request failed: " +
+                                        result.status
+                                    );
+                                }
+
+                                status.textContent = "Status: accepted";
+                                acceptButton.textContent = "Accepted";
+
+                                showRequestStatus(
+                                    "Swap request accepted successfully!"
+                                );
+
+                            } catch (error) {
+                                console.error(
+                                    "Accept request error:",
+                                    error
+                                );
+
+                                showRequestError(
+                                    getRequestErrorMessage(
+                                        error,
+                                        "accept this request"
+                                    )
+                                );
+
+                                acceptButton.disabled = false;
+                                acceptButton.textContent =
+                                    "Accept Request";
+                            }
+                        }
+                    );
+
+                    card.appendChild(acceptButton);
+                }
+
+                requestsContainer.appendChild(card);
+            }
+
             showRequestStatus("");
         }
 
@@ -173,8 +237,7 @@ async function loadRequests(offset = 0) {
             getRequestErrorMessage(error, "load your requests")
         );
 
-        // Keep previously loaded requests and allow
-        // another attempt to load the same page.
+        // Preserve pagination so loading more can be retried.
         if (offset > 0) {
             nextOffset = offset;
             loadMoreButton.hidden = false;
