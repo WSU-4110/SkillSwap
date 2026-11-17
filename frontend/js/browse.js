@@ -29,10 +29,7 @@ function getBrowseErrorMessage(error, action) {
         );
     }
 
-    return (
-        "Could not " + action +
-        ". Please try again later."
-    );
+    return "Could not " + action + ". Please try again later.";
 }
 
 // =========================
@@ -45,7 +42,7 @@ function createStudentCard(user) {
     card.style.marginBottom = "20px";
 
     const heading = document.createElement("h3");
-    heading.textContent = user.name;
+    heading.textContent = user.name || "Unknown student";
 
     const major = document.createElement("p");
     major.textContent = user.major || "Major not provided.";
@@ -74,7 +71,7 @@ function createStudentCard(user) {
 }
 
 // =========================
-// NFR-5 TASK 3: EMPTY STATES
+// NFR-5: EMPTY STATES
 // =========================
 
 function showEmptyState(container, title, description) {
@@ -109,7 +106,7 @@ function showEmptyState(container, title, description) {
 }
 
 // =========================
-// NFR-5 TASK 4: RETRY BUTTON
+// NFR-5: RETRY BUTTON
 // =========================
 
 function showRetryButton(status, message, retryAction) {
@@ -144,7 +141,7 @@ function showRetryButton(status, message, retryAction) {
 }
 
 // =========================
-// NFR-5: LOAD STUDENTS
+// LOAD STUDENTS
 // =========================
 
 async function loadStudents(endpoint, listId, statusId, emptyMessage) {
@@ -234,7 +231,6 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
         );
 
     } finally {
-        // NFR-5: Always hide the loading indicator.
         if (loadingIndicator) {
             loadingIndicator.hidden = true;
         }
@@ -260,7 +256,7 @@ loadStudents(
 );
 
 // =========================
-// FR-17: SEARCH STUDENTS
+// FR17: SEARCH STUDENTS
 // =========================
 
 const searchForm =
@@ -275,7 +271,35 @@ const searchResults =
 const searchStatus =
     document.getElementById("search-status");
 
+const clearSearchButton =
+    document.getElementById("clear-search");
+
+// Prevent old searches from replacing newer results.
+let searchVersion = 0;
+
+// =========================
+// CLEAR SEARCH BUTTON
+// =========================
+
+if (clearSearchButton) {
+    clearSearchButton.addEventListener("click", function() {
+        searchVersion++;
+
+        skillSearch.value = "";
+        searchResults.replaceChildren();
+        showBrowseStatus(searchStatus, "");
+
+        skillSearch.focus();
+    });
+}
+
+// =========================
+// SEARCH API
+// =========================
+
 async function searchStudents(skill) {
+    const currentSearch = ++searchVersion;
+
     searchResults.replaceChildren();
 
     showBrowseStatus(
@@ -293,6 +317,9 @@ async function searchStudents(skill) {
             }
         );
 
+        // Ignore outdated search results.
+        if (currentSearch !== searchVersion) return;
+
         if (response.status === 401) {
             window.location.replace("login.html");
             return;
@@ -305,6 +332,8 @@ async function searchStudents(skill) {
         }
 
         const data = await response.json();
+
+        if (currentSearch !== searchVersion) return;
 
         if (!Array.isArray(data.users)) {
             throw new Error("Unexpected search response.");
@@ -335,6 +364,8 @@ async function searchStudents(skill) {
         );
 
     } catch (error) {
+        if (currentSearch !== searchVersion) return;
+
         console.error("Student search error:", error);
 
         searchResults.replaceChildren();
@@ -349,20 +380,24 @@ async function searchStudents(skill) {
     }
 }
 
-searchForm.addEventListener("submit", function(event) {
-    event.preventDefault();
+// =========================
+// SEARCH FORM
+// =========================
 
-    const skill = skillSearch.value.trim();
+if (searchForm) {
+    searchForm.addEventListener("submit", function(event) {
+        event.preventDefault();
 
-    if (!skill) {
-        showBrowseError(
-            searchStatus,
-            "Please enter a skill before searching."
-        );
-        return;
-    }
+        const skill = skillSearch.value.trim();
 
-    searchStudents(skill);
-});
+        if (!skill) {
+            showBrowseError(
+                searchStatus,
+                "Please enter a skill before searching."
+            );
+            return;
+        }
 
-/* FR-17 Search Students */
+        searchStudents(skill);
+    });
+}
