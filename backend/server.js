@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 const session = require('express-session');
@@ -105,7 +105,7 @@ app.post('/api/register', async (req, res) => {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
   ) {
     return res.status(400).json({
-      message: 'Enter a name of 1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ100 characters and a valid email.'
+      message: 'Enter a name of 1├â╞Æ├åΓÇÖ├âΓÇÜ├é┬ó├â╞Æ├é┬ó├â┬ó├óΓÇÜ┬¼├à┬í├âΓÇÜ├é┬¼├â╞Æ├é┬ó├â┬ó├óΓé¼┼í├é┬¼├âΓÇª├óΓé¼┼ô100 characters and a valid email.'
     });
   }
 
@@ -126,13 +126,34 @@ app.post('/api/register', async (req, res) => {
       [cleanName, cleanEmail, passwordHash]
     );
 
-    return res.status(201).json({
-      message: 'Account created successfully!',
-      user: {
-        id: result.insertId,
-        name: cleanName,
-        email: cleanEmail
+    // FR19 - Automatically log in after registration
+    req.session.regenerate(error => {
+      if (error) {
+        return res.status(500).json({
+          message: 'Account created, but automatic login failed. Please log in.'
+        });
       }
+
+      req.session.userId = result.insertId;
+
+      req.session.save(error => {
+        if (error) {
+          return req.session.destroy(() => {
+            res.status(500).json({
+              message: 'Account created, but automatic login failed. Please log in.'
+            });
+          });
+        }
+
+        return res.status(201).json({
+          message: 'Account created successfully!',
+          user: {
+            id: result.insertId,
+            name: cleanName,
+            email: cleanEmail
+          }
+        });
+      });
     });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
@@ -406,7 +427,7 @@ app.put(
       name.trim().length > 100
     ) {
       return res.status(400).json({
-        message: 'Full name must contain 1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ100 characters.'
+        message: 'Full name must contain 1├â╞Æ├åΓÇÖ├âΓÇÜ├é┬ó├â╞Æ├é┬ó├â┬ó├óΓÇÜ┬¼├à┬í├âΓÇÜ├é┬¼├â╞Æ├é┬ó├â┬ó├óΓé¼┼í├é┬¼├âΓÇª├óΓé¼┼ô100 characters.'
       });
     }
 
@@ -570,7 +591,7 @@ app.post('/api/skills/teach', requireLogin, async (req, res) => {
     cleanName.length > 100
   ) {
     return res.status(400).json({
-      message: 'Skill name must contain 1ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ100 characters.'
+      message: 'Skill name must contain 1├â╞Æ├åΓÇÖ├âΓÇÜ├é┬ó├â╞Æ├é┬ó├â┬ó├óΓÇÜ┬¼├à┬í├âΓÇÜ├é┬¼├â╞Æ├é┬ó├â┬ó├óΓé¼┼í├é┬¼├âΓÇª├óΓé¼┼ô100 characters.'
     });
   }
 
@@ -700,3 +721,4 @@ app.use('/api/conversations', require('./routes/conversation-history'));
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+

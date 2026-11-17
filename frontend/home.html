@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="css/style.css">
 
     <style id="global-unread-badge-style">
-        .nav-buttons a[href="messages.html"] {
+        .nav-buttons a[href="messages.html"],
+        .nav-buttons a[href="requests.html"] {
             position: relative;
         }
 
@@ -67,8 +68,19 @@
             <a href="home.html" aria-current="page">Home</a>
             <a href="browse.html">Browse</a>
             <a href="profile.html">My Profile</a>
-            <a href="requests.html">Requests</a>
 
+            <!-- Requests Notification Badge -->
+            <a href="requests.html">
+                Requests
+                <span
+                    id="global-request-badge"
+                    class="global-unread-badge"
+                    aria-label="Pending incoming requests"
+                    hidden
+                ></span>
+            </a>
+
+            <!-- Messages Notification Badge -->
             <a href="messages.html">
                 Messages
                 <span
@@ -92,7 +104,6 @@
             id="dashboard"
             hidden
         >
-
             <span class="dashboard-label">
                 SKILLSWAP DASHBOARD
             </span>
@@ -103,7 +114,6 @@
                 Ready to learn something new?
                 Explore skills, meet students, and make connections.
             </p>
-
         </section>
 
         <!-- Quick Actions -->
@@ -112,7 +122,6 @@
             id="dashboard-actions"
             hidden
         >
-
             <div class="dashboard-section-heading">
                 <h2>Quick Actions</h2>
                 <p>What would you like to do today?</p>
@@ -335,7 +344,11 @@
         checkLogin();
     </script>
 
+    <!-- Existing Messages Notification Logic -->
     <script src="js/message-notifications.js"></script>
+
+    <!-- FR19: Requests Notification Logic -->
+    <script src="js/request-notifications.js"></script>
 
 </body>
 </html>
