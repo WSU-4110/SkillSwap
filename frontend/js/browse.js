@@ -8,12 +8,14 @@ const API_URL = "http://localhost:3000";
 // =========================
 
 function showBrowseError(status, message) {
+    status.replaceChildren();
     status.textContent = message;
     status.setAttribute("role", "alert");
     status.style.color = "#991b1b";
 }
 
 function showBrowseStatus(status, message) {
+    status.replaceChildren();
     status.textContent = message;
     status.setAttribute("role", "status");
     status.style.color = "";
@@ -107,6 +109,41 @@ function showEmptyState(container, title, description) {
 }
 
 // =========================
+// NFR-5 TASK 4: RETRY BUTTON
+// =========================
+
+function showRetryButton(status, message, retryAction) {
+    status.replaceChildren();
+    status.setAttribute("role", "alert");
+    status.style.color = "";
+
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.color = "#b91c1c";
+    text.style.marginBottom = "10px";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "🔄 Try Again";
+    button.className = "swap-request-button";
+
+    button.style.backgroundColor = "#2563eb";
+    button.style.color = "white";
+    button.style.border = "none";
+    button.style.borderRadius = "8px";
+    button.style.padding = "10px 18px";
+    button.style.cursor = "pointer";
+
+    button.addEventListener("click", function() {
+        button.disabled = true;
+        button.textContent = "Retrying...";
+        retryAction();
+    });
+
+    status.append(text, button);
+}
+
+// =========================
 // NFR-5: LOAD STUDENTS
 // =========================
 
@@ -173,7 +210,7 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
                 );
             }
 
-            status.textContent = "";
+            showBrowseStatus(status, "");
             return;
         }
 
@@ -181,16 +218,19 @@ async function loadStudents(endpoint, listId, statusId, emptyMessage) {
             list.appendChild(createStudentCard(user));
         });
 
-        status.textContent = "";
+        showBrowseStatus(status, "");
 
     } catch (error) {
         console.error("Student loading error:", error);
 
         list.replaceChildren();
 
-        showBrowseError(
+        showRetryButton(
             status,
-            getBrowseErrorMessage(error, "load students")
+            getBrowseErrorMessage(error, "load students"),
+            function() {
+                loadStudents(endpoint, listId, statusId, emptyMessage);
+            }
         );
 
     } finally {
@@ -235,19 +275,7 @@ const searchResults =
 const searchStatus =
     document.getElementById("search-status");
 
-searchForm.addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const skill = skillSearch.value.trim();
-
-    if (!skill) {
-        showBrowseError(
-            searchStatus,
-            "Please enter a skill before searching."
-        );
-        return;
-    }
-
+async function searchStudents(skill) {
     searchResults.replaceChildren();
 
     showBrowseStatus(
@@ -291,7 +319,7 @@ searchForm.addEventListener("submit", async function(event) {
                 "\". Try searching for a different skill!"
             );
 
-            searchStatus.textContent = "";
+            showBrowseStatus(searchStatus, "");
             return;
         }
 
@@ -311,11 +339,30 @@ searchForm.addEventListener("submit", async function(event) {
 
         searchResults.replaceChildren();
 
-        showBrowseError(
+        showRetryButton(
             searchStatus,
-            getBrowseErrorMessage(error, "search students")
+            getBrowseErrorMessage(error, "search students"),
+            function() {
+                searchStudents(skill);
+            }
         );
     }
+}
+
+searchForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const skill = skillSearch.value.trim();
+
+    if (!skill) {
+        showBrowseError(
+            searchStatus,
+            "Please enter a skill before searching."
+        );
+        return;
+    }
+
+    searchStudents(skill);
 });
 
 /* FR-17 Search Students */

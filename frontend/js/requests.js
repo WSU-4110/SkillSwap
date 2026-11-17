@@ -20,12 +20,14 @@ let isLoading = false;
 // =========================
 
 function showRequestError(message) {
+    statusMessage.replaceChildren();
     statusMessage.textContent = message;
     statusMessage.setAttribute("role", "alert");
     statusMessage.style.color = "#991b1b";
 }
 
 function showRequestStatus(message) {
+    statusMessage.replaceChildren();
     statusMessage.textContent = message;
     statusMessage.setAttribute("role", "status");
     statusMessage.style.color = "";
@@ -86,6 +88,44 @@ function showRequestsEmptyState() {
 }
 
 // =========================
+// NFR-5 TASK 4: RETRY BUTTON
+// =========================
+
+function showRequestsRetryButton(message, offset) {
+    statusMessage.replaceChildren();
+    statusMessage.setAttribute("role", "alert");
+    statusMessage.style.color = "";
+
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.color = "#b91c1c";
+    text.style.marginBottom = "10px";
+
+    const retryButton = document.createElement("button");
+    retryButton.type = "button";
+    retryButton.className = "swap-request-button";
+    retryButton.textContent = "🔄 Try Again";
+
+    retryButton.style.backgroundColor = "#2563eb";
+    retryButton.style.color = "white";
+    retryButton.style.border = "none";
+    retryButton.style.borderRadius = "8px";
+    retryButton.style.padding = "10px 18px";
+    retryButton.style.cursor = "pointer";
+
+    retryButton.addEventListener("click", function() {
+        if (isLoading) return;
+
+        retryButton.disabled = true;
+        retryButton.textContent = "Retrying...";
+
+        loadRequests(offset);
+    });
+
+    statusMessage.append(text, retryButton);
+}
+
+// =========================
 // LOAD INCOMING REQUESTS
 // =========================
 
@@ -123,6 +163,7 @@ async function loadRequests(offset = 0) {
             throw new Error("Invalid requests response.");
         }
 
+        // Only clear previous cards after a successful first-page load.
         if (offset === 0) {
             requestsContainer.replaceChildren();
         }
@@ -233,15 +274,15 @@ async function loadRequests(offset = 0) {
     } catch (error) {
         console.error("Request loading error:", error);
 
-        showRequestError(
-            getRequestErrorMessage(error, "load your requests")
-        );
-
-        // Preserve pagination so loading more can be retried.
+        // Preserve the page offset for retrying.
         if (offset > 0) {
             nextOffset = offset;
-            loadMoreButton.hidden = false;
         }
+
+        showRequestsRetryButton(
+            getRequestErrorMessage(error, "load your requests"),
+            offset
+        );
 
     } finally {
         isLoading = false;

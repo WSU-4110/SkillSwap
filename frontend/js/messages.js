@@ -41,12 +41,14 @@ let messages = [];
 // =========================
 
 function showMessageError(element, message) {
+    element.replaceChildren();
     element.textContent = message;
     element.setAttribute("role", "alert");
     element.style.color = "#991b1b";
 }
 
 function showMessageStatus(element, message) {
+    element.replaceChildren();
     element.textContent = message;
     element.setAttribute("role", "status");
     element.style.color = "";
@@ -64,6 +66,51 @@ function getMessageError(error, action) {
         "Could not " + action +
         ". Please try again later."
     );
+}
+
+// =========================
+// NFR-5 TASK 4: RETRY BUTTONS
+// =========================
+
+function showMessageRetry(element, message, retryAction) {
+    element.replaceChildren();
+    element.setAttribute("role", "alert");
+    element.style.color = "";
+
+    const text = document.createElement("p");
+    text.textContent = message;
+    text.style.color = "#b91c1c";
+    text.style.marginBottom = "10px";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "swap-request-button";
+    button.textContent = "🔄 Try Again";
+
+    button.style.backgroundColor = "#2563eb";
+    button.style.color = "white";
+    button.style.border = "none";
+    button.style.borderRadius = "8px";
+    button.style.padding = "10px 18px";
+    button.style.cursor = "pointer";
+
+    button.addEventListener("click", function() {
+        button.disabled = true;
+        button.textContent = "Retrying...";
+
+        Promise.resolve()
+            .then(retryAction)
+            .catch(function(error) {
+                console.error("Retry failed:", error);
+                showMessageRetry(
+                    element,
+                    getMessageError(error, "retry this action"),
+                    retryAction
+                );
+            });
+    });
+
+    element.append(text, button);
 }
 
 // =========================
@@ -131,11 +178,11 @@ function createAvatar(name, studentId) {
     img.src = API_URL + "/users/" +
         encodeURIComponent(studentId) + "/profile/image";
 
-    img.onload = function () {
+    img.onload = function() {
         avatar.replaceChildren(img);
     };
 
-    img.onerror = function () {
+    img.onerror = function() {
         // Keep the initial if the image is unavailable.
     };
 
@@ -168,7 +215,7 @@ function updateNavigationBadge(totalUnread) {
 }
 
 // =========================
-// NFR-5 TASK 3: FRIENDLY EMPTY STATES
+// NFR-5 TASK 3: EMPTY STATES
 // =========================
 
 function showChatEmptyState(container, emoji, title, description) {
@@ -419,8 +466,13 @@ async function loadSelectedConversation() {
     conversationName.textContent = otherUser.name;
 
     const avatar = createAvatar(otherUser.name, userId);
-    selectedAvatar.replaceWith(avatar);
-    avatar.id = "selected-avatar";
+    const currentAvatar =
+        document.getElementById("selected-avatar");
+
+    if (currentAvatar) {
+        currentAvatar.replaceWith(avatar);
+        avatar.id = "selected-avatar";
+    }
 
     await loadMessages();
 
@@ -459,9 +511,10 @@ async function initializeMessages() {
     } catch (error) {
         console.error("Messages loading error:", error);
 
-        showMessageError(
+        showMessageRetry(
             conversationStatus,
-            getMessageError(error, "load your messages")
+            getMessageError(error, "load your messages"),
+            initializeMessages
         );
 
     } finally {
@@ -538,16 +591,45 @@ messageForm.addEventListener("submit", async function(event) {
         console.error("Message sending error:", error);
 
         if (sent) {
-            showMessageError(
+            showMessageRetry(
                 messageStatus,
                 "Your message was sent, but the " +
-                "conversation could not refresh. " +
-                "Please reload the page."
+                "conversation could not refresh.",
+                async function() {
+                    try {
+                        await loadMessages();
+                        await loadConversations();
+
+                        showMessageStatus(
+                            messageStatus,
+                            "Conversation refreshed!"
+                        );
+                    } catch (retryError) {
+                        showMessageRetry(
+                            messageStatus,
+                            getMessageError(
+                                retryError,
+                                "refresh the conversation"
+                            ),
+                            async function() {
+                                await loadMessages();
+                                await loadConversations();
+                                showMessageStatus(
+                                    messageStatus,
+                                    "Conversation refreshed!"
+                                );
+                            }
+                        );
+                    }
+                }
             );
         } else {
+            // Do not automatically resend a message:
+            // the server may have received the original request.
             showMessageError(
                 messageStatus,
-                getMessageError(error, "send your message")
+                getMessageError(error, "send your message") +
+                " Check the conversation before sending again."
             );
         }
 
@@ -562,12 +644,12 @@ messageForm.addEventListener("submit", async function(event) {
 
 // Refresh conversation previews and unread counts every 8 seconds.
 setInterval(async function() {
-    if (!currentUser) return;
+    if (!currentUser || document.hidden) return;
 
     try {
         await loadConversations();
 
-        if (userId && otherUser && !document.hidden) {
+        if (userId && otherUser) {
             await loadMessages();
             await loadConversations();
         }
@@ -575,9 +657,19 @@ setInterval(async function() {
     } catch (error) {
         console.error("Message refresh failed:", error);
 
-        showMessageError(
+        showMessageRetry(
             conversationStatus,
-            getMessageError(error, "refresh messages")
+            getMessageError(error, "refresh messages"),
+            async function() {
+                await loadConversations();
+
+                if (userId && otherUser) {
+                    await loadMessages();
+                    await loadConversations();
+                }
+
+                showMessageStatus(conversationStatus, "");
+            }
         );
     }
 }, 8000);
