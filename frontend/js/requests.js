@@ -126,6 +126,18 @@ function showRequestsRetryButton(message, offset) {
 }
 
 // =========================
+// FR12: REQUEST STATUS STYLING
+// =========================
+
+function updateRequestStatus(statusElement, newStatus) {
+    statusElement.className =
+        "request-status status-" + newStatus;
+
+    statusElement.textContent =
+        "Status: " + newStatus;
+}
+
+// =========================
 // LOAD INCOMING REQUESTS
 // =========================
 
@@ -163,7 +175,7 @@ async function loadRequests(offset = 0) {
             throw new Error("Invalid requests response.");
         }
 
-        // Clear previous cards after a successful first-page load.
+        // Clear previous cards after successful first-page load.
         if (offset === 0) {
             requestsContainer.replaceChildren();
         }
@@ -191,8 +203,9 @@ async function loadRequests(offset = 0) {
                     request.senderName || "Unknown student";
 
                 const status = document.createElement("p");
-                status.className = "request-status";
-                status.textContent = `Status: ${request.status}`;
+
+                // FR12: Apply status-specific styling.
+                updateRequestStatus(status, request.status);
 
                 card.append(name, status);
 
@@ -254,10 +267,10 @@ async function loadRequests(offset = 0) {
                                     );
                                 }
 
-                                status.textContent = "Status: accepted";
-                                acceptButton.textContent = "Accepted";
+                                // FR12: Update status and color.
+                                updateRequestStatus(status, "accepted");
 
-                                // Keep both actions disabled after acceptance.
+                                acceptButton.textContent = "Accepted";
                                 acceptButton.disabled = true;
                                 rejectButton.disabled = true;
 
@@ -287,7 +300,7 @@ async function loadRequests(offset = 0) {
                     );
 
                     // =========================
-                    // FR12: REJECT REQUEST API
+                    // REJECT REQUEST API
                     // =========================
 
                     rejectButton.addEventListener(
@@ -324,10 +337,10 @@ async function loadRequests(offset = 0) {
                                     );
                                 }
 
-                                status.textContent = "Status: rejected";
-                                rejectButton.textContent = "Rejected";
+                                // FR12: Update status and color.
+                                updateRequestStatus(status, "rejected");
 
-                                // Prevent further changes after rejection.
+                                rejectButton.textContent = "Rejected";
                                 rejectButton.disabled = true;
                                 acceptButton.disabled = true;
 
