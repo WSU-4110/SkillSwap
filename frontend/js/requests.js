@@ -41,6 +41,20 @@ function getRequestErrorMessage(error, action) {
         );
     }
 
+    if (error.message?.includes("Invalid requests response")) {
+        return (
+            "Unable to display incoming requests. " +
+            "The server returned unexpected data. Please try again."
+        );
+    }
+
+    if (error.message?.includes("Request loading failed: 5")) {
+        return (
+            "The server is having trouble loading requests. " +
+            "Please try again later."
+        );
+    }
+
     return (
         "Could not " + action +
         ". Please try again later."
