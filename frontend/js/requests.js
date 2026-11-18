@@ -112,15 +112,16 @@ function showRequestsRetryButton(message, offset) {
     retryButton.style.borderRadius = "8px";
     retryButton.style.padding = "10px 18px";
     retryButton.style.cursor = "pointer";
+    
+retryButton.addEventListener("click", function() {
+    if (isLoading || retryButton.disabled) return;
 
-    retryButton.addEventListener("click", function() {
-        if (isLoading) return;
+    retryButton.disabled = true;
+    retryButton.textContent = "Retrying...";
+    retryButton.setAttribute("aria-busy", "true");
 
-        retryButton.disabled = true;
-        retryButton.textContent = "Retrying...";
-
-        loadRequests(offset);
-    });
+    loadRequests(offset);
+});
 
     statusMessage.append(text, retryButton);
 }
