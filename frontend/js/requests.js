@@ -113,7 +113,7 @@ function showRequestsRetryButton(message, offset) {
     retryButton.style.padding = "10px 18px";
     retryButton.style.cursor = "pointer";
 
-    retryButton.addEventListener("click", function() {
+    retryButton.addEventListener("click", function () {
         if (isLoading) return;
 
         retryButton.disabled = true;
@@ -207,7 +207,20 @@ async function loadRequests(offset = 0) {
                 // FR12: Apply status-specific styling.
                 updateRequestStatus(status, request.status);
 
-                card.append(name, status);
+                const requestDate = document.createElement("p");
+                requestDate.className = "request-date";
+
+                const createdAt = new Date(request.createdAt);
+
+                requestDate.textContent = Number.isNaN(createdAt.getTime())
+                    ? "Date unavailable"
+                    : "Received: " + createdAt.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric"
+                    });
+
+                card.append(name, requestDate, status);
 
                 if (request.status === "pending") {
 
