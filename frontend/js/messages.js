@@ -86,9 +86,10 @@ function showMessageRetry(element, message, retryAction) {
     button.type = "button";
     button.className = "swap-request-button";
     button.textContent = "🔄 Try Again";
+    button.classList.add("retry-button");
 
-    button.style.backgroundColor = "#2563eb";
-    button.style.color = "white";
+    button.style.backgroundColor = "#006B3F";
+    button.style.color = "#FFCC33";
     button.style.border = "none";
     button.style.borderRadius = "8px";
     button.style.padding = "10px 18px";

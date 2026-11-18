@@ -79,7 +79,7 @@ function showRequestsEmptyState() {
     emptyBox.style.backgroundColor = "#eff6ff";
 
     const icon = document.createElement("div");
-    icon.textContent = "📭";
+    icon.textContent = "👻";
     icon.style.fontSize = "32px";
     icon.style.marginBottom = "10px";
 
@@ -90,9 +90,9 @@ function showRequestsEmptyState() {
 
     const description = document.createElement("p");
     description.textContent =
-        "You don't have any incoming swap requests right now. " +
-        "When another student wants to exchange skills with you, " +
-        "their request will appear here.";
+        "It's a ghost town in here! " +
+        "When someone wants to swap skills with you, " +
+        "their request will magically appear here.";
 
     description.style.color = "#475569";
     description.style.margin = "0";
@@ -120,12 +120,27 @@ function showRequestsRetryButton(message, offset) {
     retryButton.className = "swap-request-button";
     retryButton.textContent = "🔄 Try Again";
 
-    retryButton.style.backgroundColor = "#2563eb";
-    retryButton.style.color = "white";
+    retryButton.style.backgroundColor = "#006B3F";
+    retryButton.style.color = "#FFCC33";
     retryButton.style.border = "none";
     retryButton.style.borderRadius = "8px";
     retryButton.style.padding = "10px 18px";
     retryButton.style.cursor = "pointer";
+
+    // Smooth hover effect
+retryButton.style.transition = "background-color 0.2s ease";
+
+// Darker green when hovering
+retryButton.addEventListener("mouseenter", function () {
+    if (!retryButton.disabled) {
+        retryButton.style.backgroundColor = "#004D2C";
+    }
+});
+
+// Original green when mouse leaves
+retryButton.addEventListener("mouseleave", function () {
+    retryButton.style.backgroundColor = "#006B3F";
+});
 
     retryButton.addEventListener("click", function () {
         if (isLoading || retryButton.disabled) return;
