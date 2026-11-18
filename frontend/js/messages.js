@@ -673,9 +673,116 @@ setInterval(async function() {
         );
     }
 }, 8000);
+// =========================
+// SEARCH STUDENTS
+// =========================
 
+const studentSearchForm =
+    document.getElementById("student-search-form");
+
+const studentSearchInput =
+    document.getElementById("student-search-input");
+
+const studentSearchStatus =
+    document.getElementById("student-search-status");
+
+const studentSearchResults =
+    document.getElementById("student-search-results");
+
+studentSearchForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const query = studentSearchInput.value.trim().toLowerCase();
+
+    studentSearchResults.replaceChildren();
+
+    if (!query) {
+        showMessageStatus(
+            studentSearchStatus,
+            "Please enter a student name."
+        );
+        return;
+    }
+
+    const searchButton =
+        studentSearchForm.querySelector('button[type="submit"]');
+
+    searchButton.disabled = true;
+
+    showMessageStatus(studentSearchStatus, "Searching...");
+
+    try {
+        const data = await apiRequest("/users");
+
+        if (!Array.isArray(data.users)) {
+            throw new Error("Invalid student list.");
+        }
+
+        const results = data.users.filter(student =>
+            String(student.name || "").toLowerCase().includes(query)
+        );
+
+        if (results.length === 0) {
+            showMessageStatus(
+                studentSearchStatus,
+                "No matching students found."
+            );
+            return;
+        }
+
+        showMessageStatus(
+            studentSearchStatus,
+            results.length + (results.length === 1
+                ? " student found."
+                : " students found.")
+        );
+
+        results.forEach(student => {
+            const link = document.createElement("a");
+            link.className = "conversation-item";
+            link.href = "messages.html?userId=" +
+                encodeURIComponent(student.id);
+
+            const avatar = createAvatar(student.name, student.id);
+
+            const details = document.createElement("div");
+            details.className = "conversation-details";
+
+            const name = document.createElement("strong");
+            name.textContent = student.name;
+
+            const major = document.createElement("p");
+            major.className = "conversation-preview";
+            major.textContent = student.major || "SkillSwap Student";
+
+            details.append(name, major);
+            link.append(avatar, details);
+
+            studentSearchResults.appendChild(link);
+        });
+
+    } catch (error) {
+        console.error("Student search failed:", error);
+
+        showMessageError(
+            studentSearchStatus,
+            getMessageError(error, "search for students")
+        );
+
+    } finally {
+        searchButton.disabled = false;
+    }
+});
+
+studentSearchInput.addEventListener("input", function() {
+    if (!studentSearchInput.value.trim()) {
+        studentSearchResults.replaceChildren();
+        showMessageStatus(studentSearchStatus, "");
+    }
+});
 // =========================
 // INITIALIZE
 // =========================
 
 initializeMessages();
+
