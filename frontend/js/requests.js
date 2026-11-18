@@ -128,10 +128,11 @@ function showRequestsRetryButton(message, offset) {
     retryButton.style.cursor = "pointer";
 
     retryButton.addEventListener("click", function () {
-        if (isLoading) return;
+        if (isLoading || retryButton.disabled) return;
 
         retryButton.disabled = true;
         retryButton.textContent = "Retrying...";
+        retryButton.setAttribute("aria-busy", "true");
 
         loadRequests(offset);
     });
@@ -438,10 +439,10 @@ async function loadRequests(offset = 0) {
         );
 
     } finally {
-    isLoading = false;
-    loadMoreButton.disabled = false;
-    loadMoreButton.textContent = "Load More";
-}
+        isLoading = false;
+        loadMoreButton.disabled = false;
+        loadMoreButton.textContent = "Load More";
+    }
 }
 
 // =========================
