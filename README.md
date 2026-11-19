@@ -32,7 +32,7 @@ See the README files in the backend and database folders for setup instructions.
 ## Team
 
 - Fatima Khiari
-- Jamil Shaheen
+- Jamil Chahine
 - Arpita Sunnha
 - Lana Nassar
 - Alaa Fadel
