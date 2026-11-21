@@ -4,6 +4,15 @@ const db = require('../db');
 
 const router = express.Router();
 
+function isValidMessageContent(content) {
+  return (
+    typeof content === 'string' &&
+    content.trim().length > 0 &&
+    content.length <= 2000
+  );
+}
+
+
 // Send a message to another student
 router.post('/', async (req, res) => {
   if (!req.session || !req.session.userId) {
@@ -19,9 +28,7 @@ router.post('/', async (req, res) => {
     !/^[1-9]\d*$/.test(String(receiverId)) ||
     !Number.isSafeInteger(Number(receiverId)) ||
     Number(receiverId) > 2147483647 ||
-    typeof content !== 'string' ||
-    !content.trim() ||
-    content.length > 2000
+    !isValidMessageContent(content)
   ) {
     return res.status(400).json({
       message: 'Enter a valid receiver and message (1â€“2000 characters).'
@@ -84,3 +91,4 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.isValidMessageContent = isValidMessageContent;
