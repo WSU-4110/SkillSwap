@@ -1,0 +1,17 @@
+-----------------------------|---------|----------|---------|---------|-------------------
+File                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------------------------|---------|----------|---------|---------|-------------------
+All files                    |     100 |      100 |     100 |     100 |                   
+ LearningSkillsController.js |     100 |      100 |     100 |     100 |                   
+ SkillMatchesController.js   |     100 |      100 |     100 |     100 |                   
+ TeachingSkillsController.js |     100 |      100 |     100 |     100 |                   
+ UserProfileController.js    |     100 |      100 |     100 |     100 |                   
+-----------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 6 passed, 6 total
+Tests:       55 passed, 55 total
+Snapshots:   0 total
+Time:        0.772 s, estimated 2 s
+Ran all test suites.
+
+Exit code: 0

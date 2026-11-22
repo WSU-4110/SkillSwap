@@ -1,6 +1,11 @@
-﻿const express = require('express');
+const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
+const TeachingSkillsController = require('./controllers/TeachingSkillsController');
+const teachingSkillsController = new TeachingSkillsController(db);
+const UserProfileController = require('./controllers/UserProfileController');
+const userProfileController = new UserProfileController(db);
+
 const session = require('express-session');
 const cors = require('cors');
 const multer = require('multer');
@@ -318,57 +323,7 @@ app.get('/api/profile', requireLogin, async (req, res) => {
 
 
 // Read another user's public profile.
-app.get('/api/users/:userId/profile', requireLogin, async (req, res) => {
-  const { userId } = req.params;
-
-  if (
-    !/^[1-9]\d*$/.test(userId) ||
-    !Number.isSafeInteger(Number(userId))
-  ) {
-    return res.status(400).json({
-      message: 'Invalid user ID.'
-    });
-  }
-
-  try {
-    const [users] = await db.execute(
-      'SELECT name, major, bio FROM users WHERE id = ?',
-      [userId]
-    );
-
-    if (!users[0]) {
-      return res.status(404).json({
-        message: 'User not found.'
-      });
-    }
-
-    const [teachingSkills] = await db.execute(
-      'SELECT name FROM teaching_skills WHERE user_id = ? ORDER BY id',
-      [userId]
-    );
-
-    const [learningSkills] = await db.execute(
-      'SELECT name FROM learning_skills WHERE user_id = ? ORDER BY id',
-      [userId]
-    );
-
-    return res.json({
-      profile: {
-        name: users[0].name,
-        major: users[0].major,
-        bio: users[0].bio,
-        teachSkills: teachingSkills.map(skill => skill.name),
-        learnSkills: learningSkills.map(skill => skill.name)
-      }
-    });
-  } catch (error) {
-    console.error('Public profile lookup failed:', error.code);
-
-    return res.status(500).json({
-      message: 'Could not load the profile.'
-    });
-  }
-});
+app.get('/api/users/:userId/profile', requireLogin, userProfileController.getProfile.bind(userProfileController));
 
  
 
@@ -554,74 +509,11 @@ app.put(
 // =========================
 
 // Read signed-in user's teaching skills.
-app.get('/api/skills/teach', requireLogin, async (req, res) => {
-  try {
-    const [skills] = await db.execute(
-      'SELECT id, name FROM teaching_skills WHERE user_id = ? ORDER BY id',
-      [req.session.userId]
-    );
-
-    return res.json({
-      skills
-    });
-  } catch (error) {
-    console.error('Teaching skills lookup failed:', error.code);
-
-    return res.status(500).json({
-      message: 'Could not load your teaching skills. Please try again.'
-    });
-  }
-});
+app.get('/api/skills/teach', requireLogin, teachingSkillsController.listSkills.bind(teachingSkillsController));
 
 
 // Add teaching skill.
-app.post('/api/skills/teach', requireLogin, async (req, res) => {
-  const { name } = req.body || {};
-
-  if (typeof name !== 'string') {
-    return res.status(400).json({
-      message: 'Enter a skill name.'
-    });
-  }
-
-  const cleanName = name.trim().replace(/\s+/g, ' ');
-
-  if (
-    cleanName.length === 0 ||
-    cleanName.length > 100
-  ) {
-    return res.status(400).json({
-      message: 'Skill name must contain 1├â╞Æ├åΓÇÖ├âΓÇÜ├é┬ó├â╞Æ├é┬ó├â┬ó├óΓÇÜ┬¼├à┬í├âΓÇÜ├é┬¼├â╞Æ├é┬ó├â┬ó├óΓé¼┼í├é┬¼├âΓÇª├óΓé¼┼ô100 characters.'
-    });
-  }
-
-  try {
-    const [result] = await db.execute(
-      'INSERT INTO teaching_skills (user_id, name) VALUES (?, ?)',
-      [req.session.userId, cleanName]
-    );
-
-    return res.status(201).json({
-      message: 'Teaching skill added successfully!',
-      skill: {
-        id: result.insertId,
-        name: cleanName
-      }
-    });
-  } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({
-        message: 'This skill is already in your teaching list.'
-      });
-    }
-
-    console.error('Teaching skill save failed:', error.code);
-
-    return res.status(500).json({
-      message: 'Could not save the skill. Please try again.'
-    });
-  }
-});
+app.post('/api/skills/teach', requireLogin, teachingSkillsController.addSkill.bind(teachingSkillsController));
 
 
 // =========================

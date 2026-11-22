@@ -1,0 +1,9 @@
+$ node node_modules/jest/bin/jest.js --config jest.fatima.config.cjs --runInBand --verbose --runTestsByPath tests/fatima/learning-add.test.js
+
+Test Suites: 1 passed, 1 total
+Tests:       15 passed, 15 total
+Snapshots:   0 total
+Time:        0.378 s, estimated 1 s
+Ran all test suites within paths "tests/fatima/learning-add.test.js".
+
+Exit code: 0
