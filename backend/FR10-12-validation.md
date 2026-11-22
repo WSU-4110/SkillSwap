@@ -26,7 +26,7 @@ If this returns rows, have the team review which pending request should remain b
 
 ## Verification
 
-Run `node --test backend/tests/requests.test.js`. Seven tests cover authentication, invalid/self recipients, missing recipients, sender identity, database failures, duplicate-key handling, and simulated concurrent duplicate sends. The database is mocked; this does not prove MySQL constraint behavior.
+Run `npm test` from the `backend` directory to execute the Jest suites. Seven tests cover authentication, invalid/self recipients, missing recipients, sender identity, database failures, duplicate-key handling, and simulated concurrent duplicate sends. The database is mocked; this does not prove MySQL constraint behavior.
 
 Before marking ready, test against MySQL with #51, #52, and #53 integrated:
 - A sends to B: 201 and one pending row.

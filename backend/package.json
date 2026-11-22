@@ -4,7 +4,7 @@
   "description": "SkillSwap backend: Node.js and Express API.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +19,9 @@
     "multer": "^2.4.0",
     "mysql2": "^3.24.5",
     "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2"
   }
 }

@@ -10,6 +10,6 @@ The conditional SQL update changes just this request and will not overwrite an a
 
 ## Verification
 
-Run `node --test backend/tests/reject-request.test.js`. These isolated tests simulate the database and check authentication, recipient-only access, request IDs, successful responses, handled requests, and failed updates. They do not verify actual MySQL execution.
+Run `npm test` from the `backend` directory to execute the Jest suites. These isolated tests simulate the database and check authentication, recipient-only access, request IDs, successful responses, handled requests, and failed updates. They do not verify actual MySQL execution.
 
 Before marking the PR ready, test using MySQL and three accounts: send a request from A to B; verify A and C cannot reject it; log in as B and reject it; check its saved status; verify another response gets 409 and other requests stay unchanged. Also test with no login and an unavailable database. Test concurrent accept/reject requests after both endpoints are integrated; only one should succeed.

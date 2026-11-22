@@ -13,4 +13,4 @@ The response is `{ requests: [...], nextOffset: number | null }`. Each request i
 
 Validation errors return 400, missing login returns 401, and database errors return 500. The sender/recipient scope always comes from the session, not from query parameters.
 
-Run `node --test backend/tests/request-status.test.js`. These tests simulate the database. Real MySQL and frontend integration remain pending. Test with three accounts: A sends to B, C must not see it, and both A and B must see its status change after B accepts or rejects. Check filters, empty lists, pagination, logged-out access, and database failures.
+Run `npm test` from the `backend` directory to execute the Jest suites. These tests simulate the database. Real MySQL and frontend integration remain pending. Test with three accounts: A sends to B, C must not see it, and both A and B must see its status change after B accepts or rejects. Check filters, empty lists, pagination, logged-out access, and database failures.

@@ -30,6 +30,6 @@ This task creates requests only. Accepting, rejecting, and reading request statu
 
 ## Verification
 
-Run `node --test backend/tests/requests.test.js` from the project root. These tests use a simulated database; they do not verify MySQL connectivity or SQL execution.
+Run `npm test` from the `backend` directory to execute the Jest suites. These tests use a simulated database; they do not verify MySQL connectivity or SQL execution.
 
 Before marking the feature ready, test with MySQL running: log in as one student, send to a second student, and confirm a pending row in `swap_requests`. Also check logged-out, self-request, invalid-ID, and missing-student cases.
