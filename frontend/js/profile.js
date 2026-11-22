@@ -836,5 +836,18 @@ async function setupEditProfilePage() {
 // INITIALIZE
 // =========================
 
-loadProfilePage();
-setupEditProfilePage();
+if (typeof process === "undefined" || process.env.NODE_ENV !== "test") {
+    loadProfilePage();
+    setupEditProfilePage();
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        getProfileError,
+        showProfileMessage,
+        readApiResponse,
+        showProfileRetryButton,
+        showSkillEmptyState,
+        displaySkills
+    };
+}
