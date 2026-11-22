@@ -474,4 +474,18 @@ loadMoreButton.addEventListener("click", () => {
 // INITIALIZE REQUESTS
 // =========================
 
-loadRequests();
+
+if (typeof module === "undefined" || !module.exports) {
+    loadRequests();
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        showRequestError,
+        showRequestStatus,
+        getRequestErrorMessage,
+        showRequestsEmptyState,
+        showRequestsRetryButton,
+        loadRequests
+    };
+}
